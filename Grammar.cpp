@@ -25,6 +25,7 @@ int main()
     {
         std::cout << token.type << " " << token.value << std::endl;
     }
+    std::cout << "commit test" << std::endl;
     system("pause");
     return 0;
 }
