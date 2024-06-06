@@ -13,7 +13,40 @@ public:
 
     string Paraser()
     {
+        stack<string> stk;
+        stk.push("$");
+        stk.push("Program");
+        int index = 0;
+        while (!stk.empty())
+        {
+            string top = stk.top();
+            stk.pop();
+            if (top == tokens[index].type)
+            {
+                index++;
+            }
+            else if (analysisTable.find(top) != analysisTable.end() && analysisTable[top].find(tokens[index].type) != analysisTable[top].end())
+            {
+                auto production = analysisTable[top][tokens[index].type];
+                if (production[0] != "-1")
+                {
+                    // 逆序入栈
+                    for (int i = production.size() - 1; i >= 0; i--)
+                    {
+                        stk.push(production[i]);
+                    }
+                }
+                else
+                {
+                    return "error";
+                }
+            }
+            else
+            {
+                return "error";
+            }
         }
+    }
 
 private:
     TokenList tokens;
