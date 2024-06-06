@@ -11,6 +11,10 @@ public:
         analysisTable = decoder.getAnal("./utils/AnalysisTable.json");
     }
 
+    string Paraser()
+    {
+        }
+
 private:
     TokenList tokens;
     // ll(1) 分析表
