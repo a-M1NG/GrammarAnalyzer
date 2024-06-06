@@ -1,0 +1,77 @@
+Program->FuncDefs
+FuncDefs->FuncDef FuncDefs
+FuncDefs->$
+FuncDef->Type ID ( Params ) { CodeBody }
+Params->ParamList
+Params->$
+ParamList->Param
+ParamList->Param , ParamList
+Param->Type ID
+Param->Type ID [ ]
+Param->Type ID [ NUM ]
+Type->int
+Type->void
+Type->float
+Type->double
+Type->char
+CodeBody->$
+CodeBody->VarDefs Statements
+VarDefs->VarDef VarDefs
+VarDefs->$
+VarDef->Type ID
+VarDef->Type ID [ ]
+VarDef->Type ID [ NUM ]
+Statements->Statement Statements
+Statements->$
+Statement->AssignStatement
+Statement->IfStatemnt
+Statement->WhileStatement
+Statement->ControlStatement
+Statement->FuncCallStatement
+Statement->ID ++ ;
+Statement->ID -- ;
+Statement->++ ID ;
+Statement->-- ID ;
+AssignStatement->ID EaqulOp Expression ;
+AssignStatement->ID [ Expression ] EaqulOp Expression ;
+EaqulOp->=
+Expression->Term ExpressionTail
+ExpressionTail->AddOp Term ExpressionTail
+ExpressionTail->$
+AddOp->+
+AddOp->-
+AddOp->&&
+AddOp->||
+Term->Factor TermTail
+TermTail->MulOp Factor TermTail
+TermTail->$
+MulOp->*
+MulOp->/
+MulOp->%
+Factor->ID
+Factor->NUM
+Factor->( Expression )
+Factor->ID [ Expression ]
+IfStatemnt->if ( Condition ) { CodeBody } ElseifPart Elsepart
+ElseifPart->else if ( Condition ) { CodeBody } ElseifPart
+ElseifPart->$
+Elsepart->else { CodeBody }
+Elsepart->$
+WhileStatement->while ( Condition ) { CodeBody }
+ControlStatement->break ;
+ControlStatement->continue ;
+ControlStatement->return Expression ;
+FuncCallStatement->ID ( Arguments ) ;
+Arguments->Argument
+Arguments->$
+Argument->Expression , Argument
+Argument->Expression
+Condition->Expression
+Condition->! Expression
+Condition->Expression JudgeOp Expression
+JudgeOp->==
+JudgeOp-><=
+JudgeOp->>=
+JudgeOp->!=
+JudgeOp->>
+JudgeOp-><
