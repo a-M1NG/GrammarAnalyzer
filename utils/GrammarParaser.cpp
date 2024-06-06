@@ -5,11 +5,12 @@
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
+#include <vector>
 
 using namespace std;
 
 // 类型定义嵌套的 unordered_map 结构
-using AnalysisTable = unordered_map<string, unordered_map<string, int>>;
+using AnalysisTable = unordered_map<string, unordered_map<string, vector<string>>>;
 
 class decodeJson
 {
@@ -50,14 +51,14 @@ private:
         return result;
     }
 
-    int parseInt(const string &json, size_t &pos)
+    string parseInt(const string &json, size_t &pos)
     {
         string result;
-        while (pos < json.size() && (isdigit(json[pos]) || json[pos] == '-'))
+        while (pos < json.size())
         {
             result += json[pos++];
         }
-        return stoi(result);
+        return result;
     }
 
     void skipWhitespace(const string &json, size_t &pos)
@@ -68,9 +69,21 @@ private:
         }
     }
 
-    unordered_map<string, int> parseInnerMap(const string &json, size_t &pos)
+    std::vector<std::string> split(const std::string &str)
     {
-        unordered_map<string, int> innerMap;
+        std::istringstream iss(str);
+        std::vector<std::string> tokens;
+        std::string token;
+        while (iss >> token)
+        {
+            tokens.push_back(token);
+        }
+        return tokens;
+    }
+
+    unordered_map<string, vector<string>> parseInnerMap(const string &json, size_t &pos)
+    {
+        unordered_map<string, vector<string>> innerMap;
         ++pos; // skip the opening brace
         skipWhitespace(json, pos);
         while (pos < json.size() && json[pos] != '}')
@@ -80,13 +93,13 @@ private:
             skipWhitespace(json, pos);
             if (json[pos] != ':')
             {
-                throw runtime_error("Expected ':' after key");
+                throw runtime_error("Expected ':' after key inner");
             }
             ++pos; // skip the colon
             skipWhitespace(json, pos);
-            int value = parseInt(json, pos);
+            string value = parseInt(json, pos);
             skipWhitespace(json, pos);
-            innerMap[key] = value;
+            innerMap[key] = split(value);
             if (json[pos] == ',')
             {
                 ++pos; // skip the comma
@@ -109,7 +122,7 @@ private:
             skipWhitespace(json, pos);
             if (json[pos] != ':')
             {
-                throw runtime_error("Expected ':' after key");
+                throw runtime_error("Expected ':' after key outer");
             }
             ++pos; // skip the colon
             skipWhitespace(json, pos);
@@ -117,7 +130,7 @@ private:
             {
                 throw runtime_error("Expected '{' for nested map");
             }
-            unordered_map<string, int> innerMap = parseInnerMap(json, pos);
+            unordered_map<string, vector<string>> innerMap = parseInnerMap(json, pos);
             table[key] = innerMap;
             skipWhitespace(json, pos);
             if (pos < json.size() && json[pos] == ',')
@@ -130,14 +143,15 @@ private:
         return table;
     }
 };
+
 // int main()
 // {
 //     try
 //     {
-//         string jsonContent = readFile("F:\\BaiduNetdiskDownload\\CompilerProject-master\\CompilerProject-master\\grammar_static\\AnalysisTable_2.json");
-//         size_t pos = 0;
-//         AnalysisTable analysis_table = parseAnalysisTable(jsonContent, pos);
-//         fstream file("F:\\BaiduNetdiskDownload\\CompilerProject-master\\CompilerProject-master\\grammar_static\\AnalysisTable_2.txt");
+//         decodeJson decoder;
+//         auto analysis_table = decoder.getAnal("utils\\AnalysisTable.json");
+
+//         fstream file("D:\\Programming\\GrammarAnalyzer\\utils\\AnalysisTable.txt");
 //         // 示例输出解析后的数据
 //         for (const auto &it : analysis_table)
 //         {
@@ -146,7 +160,6 @@ private:
 //             for (const auto &it2 : it.second)
 //             {
 //                 // cout << it2.first << ' ';
-
 //                 file << setw(10) << it2.first << ' ';
 //             }
 //             file << endl;
@@ -159,7 +172,11 @@ private:
 //             for (const auto &it2 : it.second)
 //             {
 //                 // cout << it2.second << ' ';
-//                 file << setw(10) << it2.second << ' ';
+//                 for (const auto &it3 : it2.second)
+//                 {
+//                     // cout << it3 << ' ';
+//                     file << setw(10) << it3 << ' ';
+//                 }
 //             }
 //             // cout << endl;
 //             file << endl;
@@ -169,6 +186,6 @@ private:
 //     {
 //         cerr << "Error: " << ex.what() << endl;
 //     }
-
+//     system("pause");
 //     return 0;
 // }
