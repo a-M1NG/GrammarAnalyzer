@@ -4,37 +4,58 @@ FuncDefs->$
 FuncDef->Type ID ( Params ) { CodeBody }
 Params->ParamList
 Params->$
-ParamList->Param
-ParamList->Param , ParamList
-Param->Type ID
-Param->Type ID [ ]
-Param->Type ID [ NUM ]
-Type->int
+ParamList->Param ParamListTail
+ParamListTail->, Param ParamListTail
+ParamListTail->$
+Param->Type ID IDTail
+IDTail->$
+IDTail->[ content ]
+content->&
+content->NUM
 Type->void
+Type->int
 Type->float
 Type->double
 Type->char
-CodeBody->$
 CodeBody->VarDefs Statements
+CodeBody->$
 VarDefs->VarDef VarDefs
 VarDefs->$
-VarDef->Type ID
-VarDef->Type ID [ ]
-VarDef->Type ID [ NUM ]
+VarDef->Type ID IDTail
 Statements->Statement Statements
 Statements->$
-Statement->AssignStatement
-Statement->IfStatemnt
+Statement->ID StatementTail
+Statement->IfStatement
 Statement->WhileStatement
 Statement->ControlStatement
-Statement->FuncCallStatement
-Statement->ID ++ ;
-Statement->ID -- ;
-Statement->++ ID ;
-Statement->-- ID ;
-AssignStatement->ID EaqulOp Expression ;
-AssignStatement->ID [ Expression ] EaqulOp Expression ;
-EaqulOp->=
+Statement->++ ID
+StatementTail->AssignOrFuncTail
+StatementTail->IncrementOp ;
+AssignOrFuncTail->( Arguments ) ;
+AssignOrFuncTail->IDTail EqualOp Expression ;
+IncrementOp->++
+IfStatement->if ( Condition ) { CodeBody } ElsePart
+ElsePart->else { CodeBody } ElseifPartTail
+ElsePart->$
+ElseifPartTail->else if ( Condition ) { CodeBody } ElseifPartTail
+ElseifPartTail->$
+WhileStatement->while ( Condition ) { CodeBody }
+ControlStatement->break ;
+ControlStatement->continue ;
+ControlStatement->return Expression ;
+Arguments->ArgumentList
+Arguments->$
+ArgumentList->Argument ArgumentListTail
+ArgumentListTail->, Argument ArgumentListTail
+ArgumentListTail->$
+Argument->Expression
+Condition->Expression JudgeOp Expression
+JudgeOp->==
+JudgeOp-><=
+JudgeOp->>=
+JudgeOp->!=
+JudgeOp->>
+JudgeOp-><
 Expression->Term ExpressionTail
 ExpressionTail->AddOp Term ExpressionTail
 ExpressionTail->$
@@ -48,30 +69,9 @@ TermTail->$
 MulOp->*
 MulOp->/
 MulOp->%
-Factor->ID
+Factor->ID IDFactorTail
 Factor->NUM
 Factor->( Expression )
-Factor->ID [ Expression ]
-IfStatemnt->if ( Condition ) { CodeBody } ElseifPart Elsepart
-ElseifPart->else if ( Condition ) { CodeBody } ElseifPart
-ElseifPart->$
-Elsepart->else { CodeBody }
-Elsepart->$
-WhileStatement->while ( Condition ) { CodeBody }
-ControlStatement->break ;
-ControlStatement->continue ;
-ControlStatement->return Expression ;
-FuncCallStatement->ID ( Arguments ) ;
-Arguments->Argument
-Arguments->$
-Argument->Expression , Argument
-Argument->Expression
-Condition->Expression
-Condition->! Expression
-Condition->Expression JudgeOp Expression
-JudgeOp->==
-JudgeOp-><=
-JudgeOp->>=
-JudgeOp->!=
-JudgeOp->>
-JudgeOp-><
+IDFactorTail->[ Expression ]
+IDFactorTail->$
+EqualOp->=

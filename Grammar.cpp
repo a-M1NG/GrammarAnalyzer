@@ -9,6 +9,15 @@ public:
     {
         decodeJson decoder;
         analysisTable = decoder.getAnal("./utils/AnalysisTable.json");
+        for (const auto &item : analysisTable)
+        {
+            Vn.insert(item.first);
+        }
+        auto it = analysisTable.begin();
+        for (const auto &item : it->second)
+        {
+            Vt.insert(item.first);
+        }
     }
 
     string Paraser()
@@ -21,6 +30,7 @@ public:
         {
             string top = stk.top();
             stk.pop();
+            auto curr = tokens[index];
             if (top == tokens[index].type)
             {
                 index++;
@@ -52,6 +62,8 @@ private:
     TokenList tokens;
     // ll(1) 分析表
     AnalysisTable analysisTable;
+    unordered_set<string> Vn;
+    unordered_set<string> Vt;
 };
 
 int main()

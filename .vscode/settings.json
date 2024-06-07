@@ -69,7 +69,8 @@
         "scoped_allocator": "cpp",
         "shared_mutex": "cpp",
         "typeindex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "stack": "cpp"
     },
     "editor.formatOnSave": true,
     //"terminal.integrated.shellIntegration.enabled": true,
