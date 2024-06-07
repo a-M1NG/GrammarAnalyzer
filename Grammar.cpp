@@ -78,10 +78,35 @@ public:
         }
     }
 
-    LL1(const TokenList& tokens, const AnalysisTable& table)
-        : tokens(tokens), analysisTable(table) {
-        decodeJson decoder;
-        analysisTable = decoder.getAnal("../utils/AnalysisTable.json");
+    LL1(const TokenList& tokens, const AnalysisTable& table) : tokens(tokens), analysisTable(table) {
+
+        JSONParser parser;
+        std::string path_for_Linux = "../utils/AnalysisTable.json";
+        std::string path_for_Windows = "utils/AnalysisTable.json";
+        analysisTable = parser.parse(path_for_Linux);
+
+        // 打印分析表
+        parser.print(analysisTable);
+
+        for (const auto &item : analysisTable) {
+            Vn.insert(item.first);
+        }
+        auto it = analysisTable.begin();
+        for (const auto &item : it->second) {
+            Vt.insert(item.first);
+        }
+
+        // 打印Vn, Vt
+        // std::cout << "Vn: " << std::endl;
+        // for (const auto& non_terminal : Vn) {
+        //     std::cout << non_terminal << std::endl;
+        // }
+        // std::cout << std::endl;
+        // std::cout << "Vt: " << std::endl;
+        // for (const auto& terminal : Vt) {
+        //     std::cout << terminal << std::endl;
+        // }
+        // std::cout << std::endl;
 
         // for (const auto& non_terminal : analysisTable) {
         //     std::cout << non_terminal.first << ":\n";
@@ -112,6 +137,14 @@ private:
     void initializeStacks();
     bool applyProduction(const std::string& nonTerminal, const std::string& terminal);
     void printStacks() const;
+
+    bool is_non_terminal(const std::string& symbol) {
+        return Vn.find(symbol) != Vn.end();
+    }
+
+    bool is_terminal(const std::string& symbol) {
+        return Vt.find(symbol) != Vt.end();
+    }
 };
 
 
@@ -135,6 +168,9 @@ bool LL1::applyProduction(const std::string& nonTerminal, const std::string& ter
     }
     std::cout << std::endl;
     if (production.empty()) {
+        return false; // 无法应用产生式
+    }
+    if (production[0] == "-1") {
         return false; // 无法应用产生式
     }
     // 弹出非终结符
