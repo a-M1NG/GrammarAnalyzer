@@ -145,6 +145,113 @@ private:
     }
 };
 
+class JSONParser {
+public:
+    AnalysisTable parse(const string& filename) {
+        ifstream file(filename);
+        if (!file.is_open()) {
+            throw runtime_error("Failed to open file: " + filename);
+        }
+        
+        string json((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+        size_t pos = 0;
+        return parseObject(json, pos);
+    }
+
+    void print(const AnalysisTable& table) {
+        for (const auto& nonTerminal : table) {
+            cout << nonTerminal.first << ":\n";
+            for (const auto& terminal : nonTerminal.second) {
+                cout << "  " << terminal.first << " -> ";
+                for (const auto& symbol : terminal.second) {
+                    cout << symbol << " ";
+                }
+                cout << "\n";
+            }
+        }
+    }
+
+private:
+    string parseString(const string& json, size_t& pos) {
+        string result;
+        while (pos < json.size() && json[pos] != '\"') pos++;
+        pos++; // skip the opening quote
+        while (pos < json.size() && json[pos] != '\"') {
+            if (json[pos] == '\\') {
+                pos++;
+                if (pos < json.size() && json[pos] == '\"') {
+                    result += '\"';
+                }
+            } else {
+                result += json[pos];
+            }
+            pos++;
+        }
+        pos++; // skip the closing quote
+        return result;
+    }
+
+    AnalysisTable parseObject(const string& json, size_t& pos) {
+        AnalysisTable table;
+        while (pos < json.size() && json[pos] != '{') pos++;
+        pos++; // skip the opening brace
+
+        while (pos < json.size() && json[pos] != '}') {
+            string key = parseString(json, pos);
+            while (pos < json.size() && json[pos] != ':') pos++;
+            pos++; // skip the colon
+            table[key] = parseInnerObject(json, pos);
+            while (pos < json.size() && json[pos] != ',' && json[pos] != '}') pos++;
+            if (json[pos] == ',') pos++; // skip the comma
+        }
+        pos++; // skip the closing brace
+        return table;
+    }
+
+    unordered_map<string, vector<string>> parseInnerObject(const string& json, size_t& pos) {
+        unordered_map<string, vector<string>> innerMap;
+        while (pos < json.size() && json[pos] != '{') pos++;
+        pos++; // skip the opening brace
+
+        while (pos < json.size() && json[pos] != '}') {
+            string key = parseString(json, pos);
+            while (pos < json.size() && json[pos] != ':') pos++;
+            pos++; // skip the colon
+            vector<string> production = parseArray(json, pos);
+            innerMap[key] = production;
+            while (pos < json.size() && json[pos] != ',' && json[pos] != '}') pos++;
+            if (json[pos] == ',') pos++; // skip the comma
+        }
+        pos++; // skip the closing brace
+        return innerMap;
+    }
+
+    vector<string> parseArray(const string& json, size_t& pos) {
+        vector<string> array;
+        string value;
+        while (pos < json.size() && json[pos] != '\"') pos++;
+        pos++; // skip the opening quote
+        while (pos < json.size() && json[pos] != '\"') {
+            if (json[pos] == '\\') {
+                pos++;
+                if (pos < json.size() && json[pos] == '\"') {
+                    value += '\"';
+                }
+            } else {
+                value += json[pos];
+            }
+            pos++;
+        }
+        pos++; // skip the closing quote
+        stringstream ss(value);
+        string token;
+        while (ss >> token) {
+            array.push_back(token);
+        }
+        return array;
+    }
+};
+
 // int main()
 // {
 //     try
