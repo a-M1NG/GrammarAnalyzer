@@ -7,6 +7,8 @@ struct Token
     std::string type;
     std::string value;
     int id;
+
+    Token(std::string type, std::string value, int id) : type(type), value(value), id(id) {}
 };
 using TokenList = std::vector<Token>;
 /*

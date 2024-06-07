@@ -1,5 +1,9 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include "includes.h"
 #include "Token.h"
+#include <string>
 using namespace std;
 
 class TokenSequence
@@ -24,15 +28,15 @@ public:
     }
 
 private:
-    unordered_map<string, int> KeyWord;    // ¹Ø¼ü×Ö±í£¬K
-    unordered_map<string, int> Punctuator; // ½ç·û±í,P
-    unordered_map<string, int> Constant;   // ³£Êı±í,°üÀ¨ÕûÊıÓëĞ¡Êı ,Con
-    unordered_map<string, int> Identifier; // ±êÊ¶·ûĞòÁĞ,I
-    unordered_map<string, int> Character;  // ×Ö·û³£Êı,Ch
-    unordered_map<string, int> String;     // ×Ö·û´®³£Êı,St
-    unordered_map<string, int> Array;      // Êı×é±í Arr
-    unordered_map<string, int> Error;      // ´íÎóÏî
-    TokenList Token_list;                  // tokenĞòÁĞ±í
+    unordered_map<string, int> KeyWord;    // å…³é”®å­—è¡¨ï¼ŒK
+    unordered_map<string, int> Punctuator; // ç•Œç¬¦è¡¨,P
+    unordered_map<string, int> Constant;   // å¸¸æ•°è¡¨,åŒ…æ‹¬æ•´æ•°ä¸å°æ•° ,Con
+    unordered_map<string, int> Identifier; // æ ‡è¯†ç¬¦åºåˆ—,I
+    unordered_map<string, int> Character;  // å­—ç¬¦å¸¸æ•°,Ch
+    unordered_map<string, int> String;     // å­—ç¬¦ä¸²å¸¸æ•°,St
+    unordered_map<string, int> Array;      // æ•°ç»„è¡¨ Arr
+    unordered_map<string, int> Error;      // é”™è¯¯é¡¹
+    TokenList Token_list;                  // tokenåºåˆ—è¡¨
     int IdKey = 1;
     int IdPunctuator = 1;
     int IdConstant = 1;
@@ -50,23 +54,23 @@ void TokenSequence::scan(std::string filepath)
     infile.open(filepath, ios::in);
     if (!infile.is_open())
     {
-        cout << "CinÎÄ¼ş¶ÁÈ¡Ê§°Ü" << "\n";
+        cout << "Cinæ–‡ä»¶è¯»å–å¤±è´¥" << "\n";
         return;
     }
     // test();
     string buf;
-    while (getline(infile, buf)) // 1ÎªÊı×Ö£¬2Îª×ÖÄ¸£¬3ÎªÔËËã·û£¬4Îª·Ö¸ô·û£¬5ÎªÆäËû
+    while (getline(infile, buf)) // 1ä¸ºæ•°å­—ï¼Œ2ä¸ºå­—æ¯ï¼Œ3ä¸ºè¿ç®—ç¬¦ï¼Œ4ä¸ºåˆ†éš”ç¬¦ï¼Œ5ä¸ºå…¶ä»–
     {
         for (int i = 0; i < buf.size(); i++)
         {
             if (buf[i] == ' ')
                 continue;
             else if (get_kind(buf[i]) == 2 || buf[i] == '_')
-            { // Ê××Ö·ûÎª×ÖÄ¸£¬Îª±êÊ¶·û»òÕß¹Ø¼ü×Ö
+            { // é¦–å­—ç¬¦ä¸ºå­—æ¯ï¼Œä¸ºæ ‡è¯†ç¬¦æˆ–è€…å…³é”®å­—
                 string tmp;
                 bool is_Identifier = false;
-                bool is_Aarry = false;                             // ÅĞ¶ÏÊÇ·ñÎª±êÊ¶·û£¬ÊÇ·ñÎªÊı×é
-                int leftNum = 0, rightNum = 0, lPos = 0, rPos = 0; // ¼ÇÂ¼[,]µÄÊıÁ¿£¬ºÍ´æ´¢Ñ­»·ÆğÊ¼Î»ÖÃ
+                bool is_Aarry = false;                             // åˆ¤æ–­æ˜¯å¦ä¸ºæ ‡è¯†ç¬¦ï¼Œæ˜¯å¦ä¸ºæ•°ç»„
+                int leftNum = 0, rightNum = 0, lPos = 0, rPos = 0; // è®°å½•[,]çš„æ•°é‡ï¼Œå’Œå­˜å‚¨å¾ªç¯èµ·å§‹ä½ç½®
                 while (get_kind(buf[i]) == 2 || get_kind(buf[i]) == 1 || buf[i] == '_' || buf[i] == '[' || buf[i] == ']')
                 {
                     if (buf[i] == '[')
@@ -74,7 +78,7 @@ void TokenSequence::scan(std::string filepath)
                     if (buf[i] == ']')
                         rightNum++, rPos = i;
                     if (get_kind(buf[i]) == 1)
-                        is_Identifier = true; // ÈôÓĞÊı×Ö³öÏÖ
+                        is_Identifier = true; // è‹¥æœ‰æ•°å­—å‡ºç°
                     tmp += buf[i];
                     i++;
                     if (i >= buf.size())
@@ -82,39 +86,39 @@ void TokenSequence::scan(std::string filepath)
                 }
                 i--;
                 if (leftNum || rightNum)
-                {                          // Èç¹ûÓĞ[,»òÕß]³öÏÖ£¬ÔòÎªÊı×é
-                    bool is_Error = false; // ÅĞ¶ÏÊÇ·ñÎª´íÎóÊı×é
+                {                          // å¦‚æœæœ‰[,æˆ–è€…]å‡ºç°ï¼Œåˆ™ä¸ºæ•°ç»„
+                    bool is_Error = false; // åˆ¤æ–­æ˜¯å¦ä¸ºé”™è¯¯æ•°ç»„
                     string tmpNum;
                     for (int j = lPos + 1; j < rPos; j++)
                     {
-                        tmpNum += buf[j]; // ÕâÀï´æ[]Ö®¼äµÄ×Ö·û£¬Èç¹ûÊÇÒ»¸ö´æÊı×ÖµÄ±êÊ¶·ûÒ²ÊÇ¶ÔµÄ£¬ºóÃæ¿ÉÓÃÓÚÅĞ¶Ï
+                        tmpNum += buf[j]; // è¿™é‡Œå­˜[]ä¹‹é—´çš„å­—ç¬¦ï¼Œå¦‚æœæ˜¯ä¸€ä¸ªå­˜æ•°å­—çš„æ ‡è¯†ç¬¦ä¹Ÿæ˜¯å¯¹çš„ï¼Œåé¢å¯ç”¨äºåˆ¤æ–­
                         if (get_kind(buf[j]) != 1)
-                        { //[ºÍ]Ö®¼äµÄ×Ö·ûÖ»ÄÜÎªÊı×Ö
+                        { //[å’Œ]ä¹‹é—´çš„å­—ç¬¦åªèƒ½ä¸ºæ•°å­—
                             is_Error = true;
                         }
                     }
 
                     if (leftNum != 1 || rightNum != 1)
-                        is_Error = true; //[ºÍ]¶¼Ö»ÄÜ³öÏÖÒ»´Î
+                        is_Error = true; //[å’Œ]éƒ½åªèƒ½å‡ºç°ä¸€æ¬¡
                     if (is_Error)
                     {
                         if (Error.count(tmp) == 0)
-                        { // Èç¹ûError±íÒÑ¾­°üº¬
+                        { // å¦‚æœErrorè¡¨å·²ç»åŒ…å«
                             Error[tmp] = IdError++;
                         }
-                        Token_list.push_back({"Error", tmp, Error[tmp]}); // ·Å½øToken±í
+                        Token_list.push_back({"Error", tmp, Error[tmp]}); // æ”¾è¿›Tokenè¡¨
                     }
                     else
                     {
                         if (Array.count(tmp) == 0)
-                        { // Ã»´íÎóµÄ»°·Å½øArray±í
+                        { // æ²¡é”™è¯¯çš„è¯æ”¾è¿›Arrayè¡¨
                             Array[tmp] = IdArray++;
                         }
                         Token_list.push_back({"Arr", tmp, Array[tmp]});
                     }
                 }
                 else if (is_Identifier)
-                { // ²»ÊÇÊı×é£¬²¢ÇÒÓĞÊı×Ö£¬ÄÇ¾ÍÊÇ±êÊ¶·û
+                { // ä¸æ˜¯æ•°ç»„ï¼Œå¹¶ä¸”æœ‰æ•°å­—ï¼Œé‚£å°±æ˜¯æ ‡è¯†ç¬¦
                     if (Identifier.count(tmp) == 0)
                     {
                         Identifier[tmp] = IdIdentifier++;
@@ -128,7 +132,7 @@ void TokenSequence::scan(std::string filepath)
                         Token_list.push_back({"K", tmp, KeyWord[tmp]});
                     }
                     else
-                    { // ¹Ø¼ü×Ö±íÕÒ²»µ½ÄÇ¾ÍÊÇ±êÊ¶·û
+                    { // å…³é”®å­—è¡¨æ‰¾ä¸åˆ°é‚£å°±æ˜¯æ ‡è¯†ç¬¦
                         if (Identifier.count(tmp) == 0)
                         {
                             Identifier[tmp] = IdIdentifier++;
@@ -139,11 +143,11 @@ void TokenSequence::scan(std::string filepath)
             }
 
             else if (get_kind(buf[i]) == 1)
-            {                // ´¦Àí³£Êı
-                int num = 0; // Ğ¡ÊıµãµÄÊıÁ¿
+            {                // å¤„ç†å¸¸æ•°
+                int num = 0; // å°æ•°ç‚¹çš„æ•°é‡
                 bool is_Error = false;
                 string tmp;
-                // µ±Ã»Óöµ½;»òÕßÔËËã·û
+                // å½“æ²¡é‡åˆ°;æˆ–è€…è¿ç®—ç¬¦
                 while (buf[i] != ';' && get_kind(buf[i]) != 3)
                 { // int a=123a; Error
                     if (buf[i] == '.')
@@ -177,8 +181,8 @@ void TokenSequence::scan(std::string filepath)
             }
 
             else if (buf[i] == '\'')
-            {                // ´¦Àí×Ö·û³£Êı
-                int num = 0; // ´æ'µÄÊıÁ¿
+            {                // å¤„ç†å­—ç¬¦å¸¸æ•°
+                int num = 0; // å­˜'çš„æ•°é‡
                 string tmp;
                 while (buf[i] != ';')
                 {
@@ -215,8 +219,8 @@ void TokenSequence::scan(std::string filepath)
 
             else if (buf[i] == '"')
             {                // string a=  "wag  a aw&&91 12"a  ;
-                int num = 0; // ´æ"µÄÊıÁ¿
-                int Pos = 0; // ´æ×îºóÒ»¸ö"³öÏÖµÄÎ»ÖÃ£¬Ó¦¶ÔÕâÖÖÇé¿ö string a="abcd"ab; ÕâÖÖÒ²ÅĞError
+                int num = 0; // å­˜"çš„æ•°é‡
+                int Pos = 0; // å­˜æœ€åä¸€ä¸ª"å‡ºç°çš„ä½ç½®ï¼Œåº”å¯¹è¿™ç§æƒ…å†µ string a="abcd"ab; è¿™ç§ä¹Ÿåˆ¤Error
                 string tmp;
                 while (buf[i] != ';')
                 {
@@ -255,7 +259,7 @@ void TokenSequence::scan(std::string filepath)
             }
 
             else if (get_kind(buf[i]) == 3 || get_kind(buf[i]) == 4)
-            { // ´¦ÀíÆÕÍ¨½ç·û
+            { // å¤„ç†æ™®é€šç•Œç¬¦
                 string tmp;
                 tmp += buf[i];
                 if (buf[i] == '&' && buf[i + 1] == '&' || buf[i] == '|' && buf[i + 1] == '|' || buf[i] == '%' && buf[i + 1] == '=' || buf[i] == '>' && buf[i + 1] == '=' || buf[i] == '<' && buf[i + 1] == '=' || buf[i] == '=' && buf[i + 1] == '=' || buf[i] == '+' && buf[i + 1] == '+' || buf[i] == '-' && buf[i + 1] == '-' || buf[i] == '>' && buf[i + 1] == '>' || buf[i] == '<' && buf[i + 1] == '<')
@@ -330,10 +334,12 @@ void TokenSequence::printToken()
 void TokenSequence::initKeyWord()
 {
     ifstream infile;
-    infile.open("./Lexer/KeyWord.txt", ios::in);
+    std::string path_for_Linux = "../Lexer/KeyWord.txt";
+    std::string path_for_Windows = "./Lexer/KeyWord.txt";
+    infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "KeyWordÎÄ¼ş¶ÁÈ¡Ê§°Ü" << "\n";
+        cout << "KeyWordæ–‡ä»¶è¯»å–å¤±è´¥" << "\n";
         return;
     }
     string buf;
@@ -346,10 +352,12 @@ void TokenSequence::initKeyWord()
 void TokenSequence::initDelimiters()
 {
     ifstream infile;
-    infile.open("./Lexer/Delimiters.txt", ios::in);
+    std::string path_for_Linux = "../Lexer/Delimiters.txt";
+    std::string path_for_Windows = "./Lexer/Delimiters.txt";
+    infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "DelimitersÎÄ¼ş¶ÁÈ¡Ê§°Ü" << "\n";
+        cout << "Delimitersæ–‡ä»¶è¯»å–å¤±è´¥" << "\n";
         return;
     }
     string buf;
@@ -362,20 +370,20 @@ void TokenSequence::initDelimiters()
 int TokenSequence::get_kind(char ch)
 {
     if (ch >= '0' && ch <= '9')
-        return 1; // ÕûÊı
+        return 1; // æ•´æ•°
     if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z')
-        return 2; // ×ÖÄ¸
+        return 2; // å­—æ¯
     else if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '|' || ch == '^' || ch == '&' || ch == '>' || ch == '<' || ch == '=')
-        return 3; // ÔËËã·û
+        return 3; // è¿ç®—ç¬¦
     else if (ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == ';' || ch == '\'' || ch == '.')
-        return 4; // ·Ö¸ô·û
+        return 4; // åˆ†éš”ç¬¦
     else
-        return 5; // ÆäËû·ûºÅ
+        return 5; // å…¶ä»–ç¬¦å·
 }
 
 void TokenSequence::test()
 {
-    cout << "½øÈëtest\n";
+    cout << "è¿›å…¥test\n";
 }
 
 // int main()
@@ -399,6 +407,7 @@ void TokenSequence::test()
 //     return 0;
 // }
 
-// Ò»Ğ©µ°ÌÛµÄÊäÈë
+// ä¸€äº›è›‹ç–¼çš„è¾“å…¥
 // int ab=1;  int a b =1;
 // string a="  abwa "    ; string b="aw"abcd;
+#endif
