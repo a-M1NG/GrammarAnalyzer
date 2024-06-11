@@ -86,7 +86,7 @@ public:
         analysisTable = parser.parse(path_for_Linux);
 
         // 打印分析表
-        // parser.print(analysisTable);
+        parser.print(analysisTable);
 
         for (const auto &item : analysisTable) {
             Vn.insert(item.first);
@@ -220,7 +220,16 @@ bool LL1::parse() {
             analysis_stack_.pop();
             input_stack_.pop();
         } 
-        else if (top == "Expression" && currentToken.type == "C") {
+        else if (top == "IDList" && currentToken.type == "I") {
+            analysis_stack_.pop();
+            auto production = analysisTable["IDList"]["ID"];
+            for (auto it = production.rbegin(); it != production.rend(); ++it) {
+                if (*it != "$") {
+                    analysis_stack_.push(*it);
+                }
+            }
+        }
+        else if (top == "Expression" && currentToken.type == "Con") {
             // std::cout << "Matched Expression" << std::endl;
             analysis_stack_.pop();
             input_stack_.pop();
