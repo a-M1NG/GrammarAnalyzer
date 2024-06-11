@@ -40,43 +40,43 @@ public:
         }
     }
 
-    string Paraser()
-    {
-        stack<string> stk;
-        stk.push("$");
-        stk.push("Program");
-        int index = 0;
-        while (!stk.empty())
-        {
-            string top = stk.top();
-            stk.pop();
-            auto curr = tokens[index];
-            if (top == tokens[index].type)
-            {
-                index++;
-            }
-            else if (analysisTable.find(top) != analysisTable.end() && analysisTable[top].find(tokens[index].type) != analysisTable[top].end())
-            {
-                auto production = analysisTable[top][tokens[index].type];
-                if (production[0] != "-1")
-                {
-                    // 逆序入栈
-                    for (int i = production.size() - 1; i >= 0; i--)
-                    {
-                        stk.push(production[i]);
-                    }
-                }
-                else
-                {
-                    return "error";
-                }
-            }
-            else
-            {
-                return "error";
-            }
-        }
-    }
+    // string Paraser()
+    // {
+    //     stack<string> stk;
+    //     stk.push("$");
+    //     stk.push("Program");
+    //     int index = 0;
+    //     while (!stk.empty())
+    //     {
+    //         string top = stk.top();
+    //         stk.pop();
+    //         auto curr = tokens[index];
+    //         if (top == tokens[index].type)
+    //         {
+    //             index++;
+    //         }
+    //         else if (analysisTable.find(top) != analysisTable.end() && analysisTable[top].find(tokens[index].type) != analysisTable[top].end())
+    //         {
+    //             auto production = analysisTable[top][tokens[index].type];
+    //             if (production[0] != "-1")
+    //             {
+    //                 // 逆序入栈
+    //                 for (int i = production.size() - 1; i >= 0; i--)
+    //                 {
+    //                     stk.push(production[i]);
+    //                 }
+    //             }
+    //             else
+    //             {
+    //                 return "error";
+    //             }
+    //         }
+    //         else
+    //         {
+    //             return "error";
+    //         }
+    //     }
+    // }
 
     LL1(const TokenList& tokens, const AnalysisTable& table) : tokens(tokens), analysisTable(table) {
 
@@ -84,9 +84,6 @@ public:
         std::string path_for_Linux = "../utils/AnalysisTable.json";
         std::string path_for_Windows = "utils/AnalysisTable.json";
         analysisTable = parser.parse(path_for_Linux);
-
-        // 打印分析表
-        parser.print(analysisTable);
 
         for (const auto &item : analysisTable) {
             Vn.insert(item.first);
@@ -96,28 +93,14 @@ public:
             Vt.insert(item.first);
         }
 
-        // 打印Vn, Vt
-        // std::cout << "Vn: " << std::endl;
-        // for (const auto& non_terminal : Vn) {
-        //     std::cout << non_terminal << std::endl;
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Vt: " << std::endl;
-        // for (const auto& terminal : Vt) {
-        //     std::cout << terminal << std::endl;
-        // }
-        // std::cout << std::endl;
+        // 打印分析表
+        parser.print(analysisTable);
+        
+        // 打印非终结符
+        this->printVn();
 
-        // for (const auto& non_terminal : analysisTable) {
-        //     std::cout << non_terminal.first << ":\n";
-        //     for (const auto& terminal : non_terminal.second) {
-        //         std::cout << "  " << terminal.first << " -> ";
-        //         for (const auto& symbol : terminal.second) {
-        //             std::cout << symbol << " ";
-        //         }
-        //         std::cout << "\n";
-        //     }
-        // }
+        // 打印终结符
+        this->printVt();
 
         initializeStacks();
     }
@@ -144,6 +127,18 @@ private:
 
     bool is_terminal(const std::string& symbol) {
         return Vt.find(symbol) != Vt.end();
+    }
+
+    void printVn() {
+        for (const auto& non_terminal : Vn) {
+            std::cout << non_terminal << std::endl;
+        }
+    }
+
+    void printVt() {
+        for (const auto& terminal : Vt) {
+            std::cout << terminal << std::endl;
+        }
     }
 };
 
