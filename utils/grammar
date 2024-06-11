@@ -9,9 +9,6 @@ ParamListTail->, Param ParamListTail
 ParamListTail->$
 Param->Type ID IDTail
 IDTail->$
-IDTail->[ content ]
-content->&
-content->NUM
 Type->void
 Type->int
 Type->float
@@ -21,7 +18,12 @@ CodeBody->VarDefs Statements
 CodeBody->$
 VarDefs->VarDef VarDefs
 VarDefs->$
-VarDef->Type ID IDTail
+VarDef->Type IDList ;
+IDList->ID IDTail InitExpr MoreIDs
+MoreIDs->, ID IDTail InitExpr MoreIDs
+MoreIDs->$
+InitExpr->= Expression
+InitExpr->$
 Statements->Statement Statements
 Statements->$
 Statement->ID StatementTail
@@ -72,6 +74,5 @@ MulOp->%
 Factor->ID IDFactorTail
 Factor->NUM
 Factor->( Expression )
-IDFactorTail->[ Expression ]
 IDFactorTail->$
 EqualOp->=
