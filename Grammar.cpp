@@ -78,7 +78,7 @@ public:
     //     }
     // }
 
-    LL1(const TokenList& tokens, const AnalysisTable& table) : tokens(tokens), analysisTable(table) {
+    LL1(const TokenList& tokens, const AnalysisTable& table, bool debug = false) : tokens(tokens), analysisTable(table), debug(debug) {
 
         JSONParser parser;
         std::string path_for_Linux = "../utils/AnalysisTable.json";
@@ -93,14 +93,14 @@ public:
             Vt.insert(item.first);
         }
 
-        // 打印分析表
-        parser.print(analysisTable);
-        
-        // 打印非终结符
-        this->printVn();
-
-        // 打印终结符
-        this->printVt();
+        if (debug == true) {
+            std::cout << "Vn: " << std::endl;
+            printVn();
+            std::cout << "Vt: " << std::endl;
+            printVt();  
+            std::cout << "Analysis Table: " << std::endl;
+            parser.print(analysisTable);
+        }
 
         initializeStacks();
     }
@@ -116,6 +116,8 @@ private:
 
     std::stack<std::string> analysis_stack_; // 分析栈
     std::stack<Token> input_stack_; // 输入栈
+
+    bool debug = false;
 
     void initializeStacks();
     bool applyProduction(const std::string& nonTerminal, const std::string& terminal);
@@ -144,7 +146,7 @@ private:
 
 
 void LL1::initializeStacks() {
-    input_stack_.push(Token("#", "#", 0));
+    input_stack_.push(Token("#", "#", 0, 0)); // 输入栈底
 
     // 将tokens反向推入输入栈
     for (auto it = tokens.rbegin(); it != tokens.rend(); ++it) {
