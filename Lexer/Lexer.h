@@ -54,7 +54,7 @@ void TokenSequence::scan(std::string filepath)
     infile.open(filepath, ios::in);
     if (!infile.is_open())
     {
-        cout << "Cin文件读取失败" << "\n";
+        cout << "Cin file load fail!" << "\n";
         return;
     }
     // test();
@@ -329,6 +329,10 @@ void TokenSequence::printAll()
 
 void TokenSequence::printToken()
 {
+    for (const auto &token : Token_list)
+    {
+        std::cout << token.type << " " << token.value << std::endl;
+    }
 }
 
 void TokenSequence::initKeyWord()
@@ -339,7 +343,7 @@ void TokenSequence::initKeyWord()
     infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "KeyWord文件读取失败" << "\n";
+        cout << "KeyWord file load fail!" << "\n";
         return;
     }
     string buf;
@@ -357,7 +361,7 @@ void TokenSequence::initDelimiters()
     infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "Delimiters文件读取失败" << "\n";
+        cout << "Delimiters file load fail!" << "\n";
         return;
     }
     string buf;
@@ -383,7 +387,7 @@ int TokenSequence::get_kind(char ch)
 
 void TokenSequence::test()
 {
-    cout << "进入test\n";
+    cout << "test: \n";
 }
 
 // int main()

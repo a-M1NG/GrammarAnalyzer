@@ -86,7 +86,7 @@ public:
         analysisTable = parser.parse(path_for_Linux);
 
         // 打印分析表
-        parser.print(analysisTable);
+        // parser.print(analysisTable);
 
         for (const auto &item : analysisTable) {
             Vn.insert(item.first);
@@ -249,10 +249,7 @@ int main()
     std::string path_for_Linux = "../test.txt";
     std::string path_for_Windows = "test.txt";
     auto tokens = toseq.getToken_list(path_for_Linux);
-    // for (auto token : tokens)
-    // {
-    //     std::cout << token.type << " " << token.value << std::endl;
-    // }
+    // toseq.printToken();
     LL1 ll1(tokens, AnalysisTable());
     if (ll1.parse()) {
         std::cout << "Parsing successful!" << std::endl;
