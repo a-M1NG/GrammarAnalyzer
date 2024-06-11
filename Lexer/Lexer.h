@@ -24,10 +24,20 @@ public:
         initDelimiters();
 
         scan(filepath);
+        if (error_flag)
+        {
+            print_error();
+        }
         return Token_list;
     }
 
 private:
+    struct msg
+    {
+        string value;
+        int line;
+        string error;
+    };
     unordered_map<string, int> KeyWord;    // 关键字表，K
     unordered_map<string, int> Punctuator; // 界符表,P
     unordered_map<string, int> Constant;   // 常数表,包括整数与小数 ,Con
@@ -36,7 +46,9 @@ private:
     unordered_map<string, int> String;     // 字符串常数,St
     unordered_map<string, int> Array;      // 数组表 Arr
     unordered_map<string, int> Error;      // 错误项
-    TokenList Token_list;                  // token序列表
+    vector<msg> ErrorList;
+    TokenList Token_list; // token序列表
+    bool error_flag = false;
     int IdKey = 1;
     int IdPunctuator = 1;
     int IdConstant = 1;
@@ -46,6 +58,7 @@ private:
     int IdString = 1;
     int IdArray = 1;
     int IdError = 1;
+    void print_error();
 };
 
 void TokenSequence::scan(std::string filepath)
@@ -54,11 +67,12 @@ void TokenSequence::scan(std::string filepath)
     infile.open(filepath, ios::in);
     if (!infile.is_open())
     {
-        cout << "Cin file load fail!" << "\n";
+        std::cout << "Cin file load fail!" << "\n";
         return;
     }
     // test();
     string buf;
+    int linetmp = 1;
     while (getline(infile, buf)) // 1为数字，2为字母，3为运算符，4为分隔符，5为其他
     {
         for (int i = 0; i < buf.size(); i++)
@@ -95,18 +109,23 @@ void TokenSequence::scan(std::string filepath)
                         if (get_kind(buf[j]) != 1)
                         { //[和]之间的字符只能为数字
                             is_Error = true;
+                            ErrorList.push_back({tmp, linetmp, "array format error:index must be number"});
                         }
                     }
 
                     if (leftNum != 1 || rightNum != 1)
+                    {
                         is_Error = true; //[和]都只能出现一次
+                        ErrorList.push_back({tmp, linetmp, "[and] can only appear once"});
+                    }
                     if (is_Error)
                     {
                         if (Error.count(tmp) == 0)
                         { // 如果Error表已经包含
                             Error[tmp] = IdError++;
                         }
-                        Token_list.push_back({"Error", tmp, Error[tmp]}); // 放进Token表
+                        Token_list.push_back({"Error", tmp, Error[tmp], linetmp}); // 放进Token表
+                        error_flag = true;
                     }
                     else
                     {
@@ -114,7 +133,7 @@ void TokenSequence::scan(std::string filepath)
                         { // 没错误的话放进Array表
                             Array[tmp] = IdArray++;
                         }
-                        Token_list.push_back({"Arr", tmp, Array[tmp]});
+                        Token_list.push_back({"Arr", tmp, Array[tmp], linetmp});
                     }
                 }
                 else if (is_Identifier)
@@ -123,13 +142,13 @@ void TokenSequence::scan(std::string filepath)
                     {
                         Identifier[tmp] = IdIdentifier++;
                     }
-                    Token_list.push_back({"I", tmp, Identifier[tmp]});
+                    Token_list.push_back({"I", tmp, Identifier[tmp], linetmp});
                 }
                 else
                 {
                     if (KeyWord.count(tmp))
                     {
-                        Token_list.push_back({"K", tmp, KeyWord[tmp]});
+                        Token_list.push_back({"K", tmp, KeyWord[tmp], linetmp});
                     }
                     else
                     { // 关键字表找不到那就是标识符
@@ -137,7 +156,7 @@ void TokenSequence::scan(std::string filepath)
                         {
                             Identifier[tmp] = IdIdentifier++;
                         }
-                        Token_list.push_back({"I", tmp, Identifier[tmp]});
+                        Token_list.push_back({"I", tmp, Identifier[tmp], linetmp});
                     }
                 }
             }
@@ -148,12 +167,15 @@ void TokenSequence::scan(std::string filepath)
                 bool is_Error = false;
                 string tmp;
                 // 当没遇到;或者运算符
-                while (buf[i] != ';' && get_kind(buf[i]) != 3)
+                while (buf[i] != ';' && get_kind(buf[i]) != 3 && buf[i] != ',')
                 { // int a=123a; Error
                     if (buf[i] == '.')
                         num++;
                     if (get_kind(buf[i]) != 1 && buf[i] != '.')
+                    {
                         is_Error = true;
+                        ErrorList.push_back({tmp, linetmp, "constant format error"});
+                    }
                     tmp += buf[i];
                     i++;
                     if (i >= buf.size())
@@ -161,14 +183,18 @@ void TokenSequence::scan(std::string filepath)
                 }
                 i--;
                 if (num > 1)
+                {
                     is_Error = true;
+                    ErrorList.push_back({tmp, linetmp, "constant format error"});
+                }
                 if (is_Error)
                 {
                     if (Error.count(tmp) == 0)
                     {
                         Error[tmp] = IdError++;
                     }
-                    Token_list.push_back({"Error", tmp, Error[tmp]});
+                    Token_list.push_back({"Error", tmp, Error[tmp], linetmp});
+                    error_flag = true;
                 }
                 else
                 {
@@ -176,7 +202,7 @@ void TokenSequence::scan(std::string filepath)
                     {
                         Constant[tmp] = IdConstant++;
                     }
-                    Token_list.push_back({"Con", tmp, Constant[tmp]});
+                    Token_list.push_back({"Con", tmp, Constant[tmp], linetmp});
                 }
             }
 
@@ -184,7 +210,7 @@ void TokenSequence::scan(std::string filepath)
             {                // 处理字符常数
                 int num = 0; // 存'的数量
                 string tmp;
-                while (buf[i] != ';')
+                while (buf[i] != ';' && buf[i] != ',')
                 {
                     if (buf[i] == '\'')
                         num++;
@@ -196,16 +222,23 @@ void TokenSequence::scan(std::string filepath)
                 i--;
                 bool is_Error = false;
                 if (num != 2)
+                {
                     is_Error = true;
+                    ErrorList.push_back({tmp, linetmp, "character constant format error"});
+                }
                 if ((int)tmp.size() - 2 != 1)
+                {
                     is_Error = true;
+                    ErrorList.push_back({tmp, linetmp, "character constant format error"});
+                }
                 if (is_Error)
                 {
                     if (Error.count(tmp) == 0)
                     {
                         Error[tmp] = IdError++;
                     }
-                    Token_list.push_back({"Error", tmp, Error[tmp]});
+                    Token_list.push_back({"Error", tmp, Error[tmp], linetmp});
+                    error_flag = true;
                 }
                 else
                 {
@@ -213,7 +246,7 @@ void TokenSequence::scan(std::string filepath)
                     {
                         Character[tmp] = IdCharacter++;
                     }
-                    Token_list.push_back({"Ch", tmp, Character[tmp]});
+                    Token_list.push_back({"Ch", tmp, Character[tmp], linetmp});
                 }
             }
 
@@ -222,7 +255,7 @@ void TokenSequence::scan(std::string filepath)
                 int num = 0; // 存"的数量
                 int Pos = 0; // 存最后一个"出现的位置，应对这种情况 string a="abcd"ab; 这种也判Error
                 string tmp;
-                while (buf[i] != ';')
+                while (buf[i] != ';' && buf[i] != ',')
                 {
                     if (buf[i] == '"')
                         num++, Pos = i;
@@ -234,11 +267,17 @@ void TokenSequence::scan(std::string filepath)
                 i--;
                 bool is_Error = false;
                 if (num != 2)
+                {
                     is_Error = true;
+                    ErrorList.push_back({tmp, linetmp, "string constant format error"});
+                }
                 for (int j = Pos + 1; j <= i; j++)
                 {
                     if (buf[j] != ' ')
+                    {
                         is_Error = true;
+                        ErrorList.push_back({tmp, linetmp, "unexpected character \"" + tmp + "\""});
+                    }
                 }
                 if (is_Error)
                 {
@@ -246,7 +285,8 @@ void TokenSequence::scan(std::string filepath)
                     {
                         Error[tmp] = IdError++;
                     }
-                    Token_list.push_back({"Error", tmp, Error[tmp]});
+                    Token_list.push_back({"Error", tmp, Error[tmp], linetmp});
+                    error_flag = true;
                 }
                 else
                 {
@@ -254,7 +294,7 @@ void TokenSequence::scan(std::string filepath)
                     {
                         String[tmp] = IdString++;
                     }
-                    Token_list.push_back({"St", tmp, String[tmp]});
+                    Token_list.push_back({"St", tmp, String[tmp], linetmp});
                 }
             }
 
@@ -267,7 +307,7 @@ void TokenSequence::scan(std::string filepath)
                     tmp += buf[i + 1];
                     i++;
                 }
-                Token_list.push_back({"P", tmp, Punctuator[tmp]});
+                Token_list.push_back({"P", tmp, Punctuator[tmp], linetmp});
             }
             else
             {
@@ -277,54 +317,57 @@ void TokenSequence::scan(std::string filepath)
                 {
                     Error[tmp] = IdError++;
                 }
-                Token_list.push_back({"Error", tmp, Error[tmp]});
+                Token_list.push_back({"Error", tmp, Error[tmp], linetmp});
+                ErrorList.push_back({tmp, linetmp, "unexpected symbol \"" + tmp + "\""});
+                error_flag = true;
             }
         }
+        linetmp++;
     }
 }
 
 void TokenSequence::printAll()
 {
 
-    cout << setw(58) << "KeyWord\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "KeyWord\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : KeyWord)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Delimiters\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Delimiters\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Punctuator)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Constant\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Constant\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Constant)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Identifier\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Identifier\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Identifier)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Character\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Character\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Character)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "String\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "String\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : String)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Array\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Array\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Array)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 
-    cout << setw(58) << "Error\n";
-    cout << setw(35) << "value" << setw(36) << "id\n\n";
+    std::cout << setw(58) << "Error\n";
+    std::cout << setw(35) << "value" << setw(36) << "id\n\n";
     for (auto i : Error)
-        cout << setw(35) << i.first << setw(35) << i.second << "\n";
+        std::cout << setw(35) << i.first << setw(35) << i.second << "\n";
 }
 
 void TokenSequence::printToken()
@@ -343,7 +386,7 @@ void TokenSequence::initKeyWord()
     infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "KeyWord file load fail!" << "\n";
+        std::cout << "KeyWord file load fail!" << "\n";
         return;
     }
     string buf;
@@ -361,7 +404,7 @@ void TokenSequence::initDelimiters()
     infile.open(path_for_Linux, ios::in);
     if (!infile.is_open())
     {
-        cout << "Delimiters file load fail!" << "\n";
+        std::cout << "Delimiters file load fail!" << "\n";
         return;
     }
     string buf;
@@ -379,7 +422,7 @@ int TokenSequence::get_kind(char ch)
         return 2; // 字母
     else if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '|' || ch == '^' || ch == '&' || ch == '>' || ch == '<' || ch == '=')
         return 3; // 运算符
-    else if (ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == ';' || ch == '\'' || ch == '.')
+    else if (ch == '{' || ch == '}' || ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == ';' || ch == '\'' || ch == '.' || ch == ',')
         return 4; // 分隔符
     else
         return 5; // 其他符号
@@ -387,7 +430,15 @@ int TokenSequence::get_kind(char ch)
 
 void TokenSequence::test()
 {
-    cout << "test: \n";
+    std::cout << "test: \n";
+}
+
+inline void TokenSequence::print_error()
+{
+    for (auto i : ErrorList)
+    {
+        std::cout << "Error: " << i.value << " at line " << i.line << " : " << i.error << "\n";
+    }
 }
 
 // int main()
@@ -403,10 +454,10 @@ void TokenSequence::test()
 
 //     vector<Token> Token_list = CinToken.getToken_list();
 
-//     cout << setw(58) << "Token_list:\n";
-//     cout << setw(25) << "type" << setw(25) << "value" << setw(25) << "id" << "\n\n";
+//     std::cout << setw(58) << "Token_list:\n";
+//     std::cout << setw(25) << "type" << setw(25) << "value" << setw(25) << "id" << "\n\n";
 //     for (auto i : Token_list)
-//         cout << setw(25) << i.type << setw(25) << i.value << setw(25) << i.id << " \n";
+//         std::cout << setw(25) << i.type << setw(25) << i.value << setw(25) << i.id << " \n";
 
 //     return 0;
 // }
