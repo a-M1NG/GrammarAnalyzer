@@ -174,7 +174,7 @@ void TokenSequence::scan(std::string filepath)
                     if (get_kind(buf[i]) != 1 && buf[i] != '.')
                     {
                         is_Error = true;
-                        ErrorList.push_back({tmp, linetmp, "constant format error"});
+                        ErrorList.push_back({tmp + buf[i], linetmp, "constant format error"});
                     }
                     tmp += buf[i];
                     i++;
