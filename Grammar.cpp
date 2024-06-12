@@ -1,7 +1,8 @@
 #include "Lexer/Lexer.h"
-#include "Lexer/Token.h"
+#include "Lexer/data_type.h"
 #include "Lexer/includes.h"
 #include "utils/GrammarParaser.cpp"
+#include <iostream>
 #include <string>
 #include <vector>
 class LL1
@@ -105,6 +106,33 @@ public:
         initializeStacks();
     }
 
+    void createErrorList(const std::string& nonTerminal, const Token& terminal) {
+        if (nonTerminal == "") {
+            std::cerr << "Unexpected token " << terminal.value << std::endl;
+            Error_List.push_back(msg{terminal.value, terminal.line, "Unexpected token"});
+        } 
+        else if (nonTerminal == "-1") {
+            std::cerr << "Unexpected token " << terminal.value << std::endl;
+            Error_List.push_back(msg{terminal.value, terminal.line, "Unexpected token"});
+        } 
+        else if (nonTerminal == "Expression") {
+            std::cerr << "Error: " << terminal.value << " is not a valid expression" << std::endl;
+            std::string error = "Error: " + terminal.value + " is not a valid expression";
+            Error_List.push_back(msg{terminal.value, terminal.line, error});
+        }
+        else if (nonTerminal == "IDList") {
+            std::cerr << "Error: " << terminal.value << " is not a valid terminal" << std::endl;
+            std::string error = "Error: " + terminal.value + " is not a valid terminal";
+            Error_List.push_back(msg{terminal.value, terminal.line, error});
+        }
+        else {
+            std::cerr << "Other error" << std::endl;
+            std::cerr << "Failed to apply production for non-terminal " << nonTerminal << " and terminal " << terminal.value << std::endl;
+            std::string error = "Failed to apply production for non-terminal " + nonTerminal + " and terminal " + terminal.value;
+            Error_List.push_back(msg{terminal.value, terminal.line, error});
+        }
+    }
+
     bool parse();
 
 private:
@@ -116,6 +144,8 @@ private:
 
     std::stack<std::string> analysis_stack_; // 分析栈
     std::stack<Token> input_stack_; // 输入栈
+
+    std::vector<msg> Error_List;
 
     bool debug = false;
 
@@ -159,11 +189,14 @@ void LL1::initializeStacks() {
 
 bool LL1::applyProduction(const std::string& nonTerminal, const std::string& terminal) {
     std::vector<std::string> production = analysisTable[nonTerminal][terminal];
-    std::cout << "production: " << nonTerminal << " -> ";
-    for (const auto& symbol : production) {
-        std::cout << symbol << " ";
+    if (debug) {
+        std::cout << "production: " << nonTerminal << " -> ";
+        for (const auto& symbol : production) {
+            std::cout << symbol << " ";
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
+   
     if (production.empty()) {
         return false; // 无法应用产生式
     }
@@ -204,8 +237,9 @@ bool LL1::parse() {
     while (!analysis_stack_.empty() && !input_stack_.empty()) {
         std::string top = analysis_stack_.top();
         Token currentToken = input_stack_.top();
-
-        printStacks();
+        
+        if (debug)
+            printStacks();
         
         if (top == currentToken.value || top == "$") { // 匹配终结符或空产生式
             // std::cout << "Matched " << top << std::endl;
@@ -233,7 +267,9 @@ bool LL1::parse() {
         } 
         else if (isupper(top[0])) { // 非终结符
             if (!applyProduction(top, currentToken.value)) {
-                std::cerr << "Failed to apply production for non-terminal " << top << " and terminal " << currentToken.value << std::endl;
+                std::cerr << "Error at line " << currentToken.line << ": ";
+                // std::cerr << "Failed to apply production for non-terminal " << top << " and terminal " << currentToken.value << std::endl;
+                createErrorList(top, currentToken);
                 return false; // 无法应用产生式
             }
         }
@@ -241,9 +277,9 @@ bool LL1::parse() {
             std::cout << "Parsing successful!" << std::endl;
             return true; // 分析成功
         } 
-        else {
-            return false; // 语法错误
-        }
+        // else {
+        //     return false; // 语法错误
+        // }
     }
     return analysis_stack_.empty() && input_stack_.empty();
 }

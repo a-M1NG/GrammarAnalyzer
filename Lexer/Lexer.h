@@ -2,7 +2,7 @@
 #define LEXER_H
 
 #include "includes.h"
-#include "Token.h"
+#include "data_type.h"
 #include <string>
 using namespace std;
 
@@ -32,12 +32,6 @@ public:
     }
 
 private:
-    struct msg
-    {
-        string value;
-        int line;
-        string error;
-    };
     unordered_map<string, int> KeyWord;    // 关键字表，K
     unordered_map<string, int> Punctuator; // 界符表,P
     unordered_map<string, int> Constant;   // 常数表,包括整数与小数 ,Con
@@ -374,7 +368,7 @@ void TokenSequence::printToken()
 {
     for (const auto &token : Token_list)
     {
-        std::cout << token.type << " " << token.value << std::endl;
+        std::cout << "type: " << token.type << " value: " << token.value << " id: " << token.id << " line: " << token.line << "\n";
     }
 }
 
