@@ -20,6 +20,14 @@ struct msg {
     std::string error;
 };
 
+struct Quater
+{
+    std::string op;     
+    std::string arg1;
+    std::string arg2;
+    std::string result;
+};
+
 
 /*
 Token type:

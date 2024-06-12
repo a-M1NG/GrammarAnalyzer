@@ -161,8 +161,13 @@ void TokenSequence::scan(std::string filepath)
                 bool is_Error = false;
                 string tmp;
                 // 当没遇到;或者运算符
-                while (buf[i] != ';' && get_kind(buf[i]) != 3 && buf[i] != ',')
+                while (buf[i] != ';' && get_kind(buf[i]) != 3 && buf[i] != ',' && get_kind(buf[i]) != 4)
                 { // int a=123a; Error
+                    if (buf[i] == ' ')
+                    {
+                        i++;
+                        continue;
+                    }
                     if (buf[i] == '.')
                         num++;
                     if (get_kind(buf[i]) != 1 && buf[i] != '.')

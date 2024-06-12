@@ -1,5 +1,17 @@
 int main()
 {
     int a = 0;
+    int b = 5;
+    while (a > 0) 
+    {
+        if (a < 10) 
+        {
+            a = b + 2 * 3;
+        } 
+        else 
+        {
+            a = b * (2 + 3);
+        }
+    }
     return 0;
 }

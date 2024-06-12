@@ -1,6 +1,7 @@
 #include "Lexer/Lexer.h"
 #include "Lexer/data_type.h"
 #include "Lexer/includes.h"
+#include "Lexer/quater.h"
 #include "utils/GrammarParaser.cpp"
 #include <iostream>
 #include <string>
@@ -99,8 +100,8 @@ public:
             printVn();
             std::cout << "Vt: " << std::endl;
             printVt();  
-            std::cout << "Analysis Table: " << std::endl;
-            parser.print(analysisTable);
+            // std::cout << "Analysis Table: " << std::endl;
+            // parser.print(analysisTable);
         }
 
         initializeStacks();
@@ -150,7 +151,7 @@ private:
     bool debug = false;
 
     void initializeStacks();
-    bool applyProduction(const std::string& nonTerminal, const std::string& terminal);
+    bool applyProduction(const std::string& nonTerminal, const Token& terminal);
     void printStacks() const;
 
     bool is_non_terminal(const std::string& symbol) {
@@ -187,14 +188,26 @@ void LL1::initializeStacks() {
     analysis_stack_.push("Program"); // 起始符号
 }
 
-bool LL1::applyProduction(const std::string& nonTerminal, const std::string& terminal) {
-    std::vector<std::string> production = analysisTable[nonTerminal][terminal];
+bool LL1::applyProduction(const std::string& nonTerminal, const Token& terminal) {
+    std::vector<std::string> production;
+    production.clear();
+    if (terminal.type == "I" || terminal.type == "Con")
+        production = analysisTable[nonTerminal]["ID"];
+    else 
+        production = analysisTable[nonTerminal][terminal.value];
+
     if (debug) {
         std::cout << "production: " << nonTerminal << " -> ";
         for (const auto& symbol : production) {
             std::cout << symbol << " ";
         }
         std::cout << std::endl;
+    }
+
+    if (nonTerminal == "ID" && (terminal.type == "I" || terminal.type == "Con")) {
+        analysis_stack_.pop();
+        input_stack_.pop();
+        return true;
     }
    
     if (production.empty()) {
@@ -246,7 +259,7 @@ bool LL1::parse() {
             analysis_stack_.pop();
             input_stack_.pop();
         }
-        else if (top == "ID" && currentToken.type == "I") {
+        else if (top == "ID" && (currentToken.type == "I")) {
             // std::cout << "Matched ID" << std::endl;
             analysis_stack_.pop();
             input_stack_.pop();
@@ -260,15 +273,11 @@ bool LL1::parse() {
                 }
             }
         }
-        else if (top == "Expression" && currentToken.type == "Con") {
-            // std::cout << "Matched Expression" << std::endl;
-            analysis_stack_.pop();
-            input_stack_.pop();
-        } 
         else if (isupper(top[0])) { // 非终结符
-            if (!applyProduction(top, currentToken.value)) {
+            if (!applyProduction(top, currentToken)) {
                 std::cerr << "Error at line " << currentToken.line << ": ";
                 // std::cerr << "Failed to apply production for non-terminal " << top << " and terminal " << currentToken.value << std::endl;
+                std::cout << "114514" << std::endl;
                 createErrorList(top, currentToken);
                 return false; // 无法应用产生式
             }
@@ -277,9 +286,9 @@ bool LL1::parse() {
             std::cout << "Parsing successful!" << std::endl;
             return true; // 分析成功
         } 
-        // else {
-        //     return false; // 语法错误
-        // }
+        else {
+            return false; // 语法错误
+        }
     }
     return analysis_stack_.empty() && input_stack_.empty();
 }
@@ -291,12 +300,20 @@ int main()
     std::string path_for_Linux = "../test.txt";
     std::string path_for_Windows = "test.txt";
     auto tokens = toseq.getToken_list(path_for_Linux);
-    // toseq.printToken();
-    LL1 ll1(tokens, AnalysisTable());
+    toseq.printToken();
+    LL1 ll1(tokens, AnalysisTable(), true);
     if (ll1.parse()) {
         std::cout << "Parsing successful!" << std::endl;
     } else {
         std::cerr << "Parsing failed!" << std::endl;
     }
+
+    quaterGen qt(tokens);
+    std::cout << "Quater generation:" << std::endl;
+    qt.generate();
+    std::cout << "Quater list:" << std::endl;
+    qt.printQuaters();
+
+
     return 0;
 }
