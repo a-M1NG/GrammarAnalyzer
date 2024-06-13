@@ -1,4 +1,4 @@
-void test()
+int test()
 {
     int a = 0;
     return 0;
