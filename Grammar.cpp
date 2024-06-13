@@ -12,24 +12,17 @@ public:
     LL1(const TokenList tokens) : tokens(tokens)
     {
         decodeJson decoder;
-        std::string path_for_Linux = "../utils/AnalysisTable.json";
-        std::string path_for_Windows = "utils/AnalysisTable.json";
-        analysisTable = decoder.getAnal(path_for_Windows);
-
-        // 打印分析表
-        // for (const auto &item : analysisTable)
-        // {
-        //     cout << item.first << " : " << endl;
-        //     for (const auto &item2 : item.second)
-        //     {
-        //         cout << item2.first << " : ";
-        //         for (const auto &item3 : item2.second)
-        //         {
-        //             cout << item3 << " ";
-        //         }
-        //         cout << endl;
-        //     }
-        // }
+        std::string file_path;
+        #if defined(_WIN32) || defined(_WIN64)
+            file_path = "utils/AnalysisTable.json";
+        #elif defined(__linux__) 
+            file_path = "../utils/AnalysisTable.json";
+        #else
+            std::cout << "Unknown OS" << std::endl;
+        #endif
+        // std::string path_for_Linux = "../utils/AnalysisTable.json";
+        // std::string path_for_Windows = "utils/AnalysisTable.json";
+        analysisTable = decoder.getAnal(file_path);
 
         for (const auto &item : analysisTable)
         {
@@ -40,6 +33,46 @@ public:
         {
             Vt.insert(item.first);
         }
+    }
+
+    LL1(const TokenList &tokens, const AnalysisTable &table, bool debug = false) : tokens(tokens), analysisTable(table), debug(debug)
+    {
+
+        JSONParser parser;
+        std::string file_path;
+        #if defined(_WIN32) || defined(_WIN64)
+            file_path = "utils/AnalysisTable.json";
+        #elif defined(__linux__) 
+            file_path = "../utils/AnalysisTable.json";
+        #else
+            std::cout << "Unknown OS" << std::endl;
+        #endif
+        // std::string path_for_Linux = "../utils/AnalysisTable.json";
+        // std::string path_for_Windows = "utils/AnalysisTable.json";
+        
+        analysisTable = parser.parse(file_path);
+
+        for (const auto &item : analysisTable)
+        {
+            Vn.insert(item.first);
+        }
+        auto it = analysisTable.begin();
+        for (const auto &item : it->second)
+        {
+            Vt.insert(item.first);
+        }
+
+        if (debug == true)
+        {
+            std::cout << "Vn: " << std::endl;
+            printVn();
+            std::cout << "Vt: " << std::endl;
+            printVt();
+            // std::cout << "Analysis Table: " << std::endl;
+            // parser.print(analysisTable);
+        }
+
+        initializeStacks();
     }
 
     // string Paraser()
@@ -80,37 +113,6 @@ public:
     //     }
     // }
 
-    LL1(const TokenList &tokens, const AnalysisTable &table, bool debug = false) : tokens(tokens), analysisTable(table), debug(debug)
-    {
-
-        JSONParser parser;
-        std::string path_for_Linux = "../utils/AnalysisTable.json";
-        std::string path_for_Windows = "utils/AnalysisTable.json";
-        analysisTable = parser.parse(path_for_Windows);
-
-        for (const auto &item : analysisTable)
-        {
-            Vn.insert(item.first);
-        }
-        auto it = analysisTable.begin();
-        for (const auto &item : it->second)
-        {
-            Vt.insert(item.first);
-        }
-
-        if (debug == true)
-        {
-            std::cout << "Vn: " << std::endl;
-            printVn();
-            std::cout << "Vt: " << std::endl;
-            printVt();
-            // std::cout << "Analysis Table: " << std::endl;
-            // parser.print(analysisTable);
-        }
-
-        initializeStacks();
-    }
-
     void createErrorList(const std::string &nonTerminal, const Token &terminal)
     {
         if (nonTerminal == "")
@@ -122,17 +124,15 @@ public:
         {
             std::cerr << "Unexpected token " << terminal.value << std::endl;
             Error_List.push_back(msg{terminal.value, terminal.line, "Unexpected token"});
-        }
-        else if (nonTerminal == "Expression")
-        {
-            std::cerr << "Error: " << terminal.value << " is not a valid expression" << std::endl;
-            std::string error = "Error: " + terminal.value + " is not a valid expression";
+        } 
+        else if (nonTerminal == "Expression") {
+            std::cerr << terminal.value << " is not a valid expression" << std::endl;
+            std::string error = terminal.value + " is not a valid expression";
             Error_List.push_back(msg{terminal.value, terminal.line, error});
         }
-        else if (nonTerminal == "IDList")
-        {
-            std::cerr << "Error: " << terminal.value << " is not a valid terminal" << std::endl;
-            std::string error = "Error: " + terminal.value + " is not a valid terminal";
+        else if (nonTerminal == "IDList") {
+            std::cerr << terminal.value << " is not a valid terminal" << std::endl;
+            std::string error = terminal.value + " is not a valid terminal";
             Error_List.push_back(msg{terminal.value, terminal.line, error});
         }
         else
@@ -221,15 +221,20 @@ void LL1::initializeStacks()
     analysis_stack_.push("Program"); // 起始符号
 }
 
-bool LL1::applyProduction(const std::string &nonTerminal, const Token &terminal)
-{
+bool LL1::applyProduction(const std::string& nonTerminal, const Token& terminal) {
+    
     std::vector<std::string> production;
     production.clear();
+
     if (terminal.type == "I" || terminal.type == "Con")
     {
         production = analysisTable[nonTerminal]["ID"];
     }
-    else
+    else if (nonTerminal == "IDList" && terminal.type == "I") {
+        analysis_stack_.pop();
+        production = analysisTable["IDList"]["ID"];
+    }
+    else 
         production = analysisTable[nonTerminal][terminal.value];
 
     if (debug)
@@ -306,34 +311,20 @@ bool LL1::parse()
         }
         if (debug)
             printStacks();
-
-        if (top == currentToken.value || top == "$")
-        { // 匹配终结符或空产生式
-            // std::cout << "Matched " << top << std::endl;
+        
+        // 前期在词法中做的处理，界符和关键字都是终结符且能直接匹配，用户自定义标识符和常数需要进一步处理
+        if (top == currentToken.value && (currentToken.type == "K" || currentToken.type == "P")) { // 匹配终结符
+            if (debug)
+                std::cout << "Matching " << top << " with " << currentToken.value << std::endl;
             analysis_stack_.pop();
             input_stack_.pop();
 
             funcBlock.push_back(currentToken);
         }
-        else if (top == "IDList" && currentToken.type == "I")
-        {
-            analysis_stack_.pop();
-            auto production = analysisTable["IDList"]["ID"];
-            for (auto it = production.rbegin(); it != production.rend(); ++it)
-            {
-                if (*it != "$")
-                {
-                    analysis_stack_.push(*it);
-                }
-            }
-        }
-        else if (isupper(top[0]))
-        { // 非终结符
-            if (!applyProduction(top, currentToken))
-            {
+        else if (isupper(top[0])) { // 非终结符
+            std::cout << "fuck 114514 fuck: " << top[0] << std::endl;
+            if (!applyProduction(top, currentToken)) {
                 std::cerr << "Error at line " << currentToken.line << ": ";
-                // std::cerr << "Failed to apply production for non-terminal " << top << " and terminal " << currentToken.value << std::endl;
-                std::cout << "114514" << std::endl;
                 createErrorList(top, currentToken);
                 return false; // 无法应用产生式
             }
@@ -354,10 +345,18 @@ bool LL1::parse()
 
 int main()
 {
+    std::string file_path;
+    #if defined(_WIN32) || defined(_WIN64)
+        file_path = "test.txt";
+    #elif defined(__linux__) 
+        file_path = "../test.txt";
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
     TokenSequence toseq;
-    std::string path_for_Linux = "../test.txt";
-    std::string path_for_Windows = "test.txt";
-    auto tokens = toseq.getToken_list(path_for_Windows);
+    // std::string path_for_Linux = "../test.txt";
+    // std::string path_for_Windows = "test.txt";
+    auto tokens = toseq.getToken_list(file_path);
     toseq.printToken();
     LL1 ll1(tokens, AnalysisTable(), true);
     if (ll1.parse())
@@ -374,6 +373,12 @@ int main()
     qt.generate();
     std::cout << "Quater list:" << std::endl;
     qt.printQuaters();
-    system("pause");
+    #if defined(_WIN32) || defined(_WIN64)
+        system("pause");
+    #elif defined(__linux__) 
+        std::cout << "Run on Linux" << std::endl;
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
     return 0;
 }

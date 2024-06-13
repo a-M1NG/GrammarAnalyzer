@@ -380,9 +380,17 @@ void TokenSequence::printToken()
 void TokenSequence::initKeyWord()
 {
     ifstream infile;
-    std::string path_for_Linux = "../Lexer/KeyWord.txt";
-    std::string path_for_Windows = "./Lexer/KeyWord.txt";
-    infile.open(path_for_Windows, ios::in);
+    std::string file_path;
+    #if defined(_WIN32) || defined(_WIN64)
+        file_path = "./Lexer/KeyWord.txt";
+    #elif defined(__linux__) 
+        file_path = "../Lexer/KeyWord.txt";
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
+    // std::string path_for_Linux = "../Lexer/KeyWord.txt";
+    // std::string path_for_Windows = "./Lexer/KeyWord.txt";
+    infile.open(file_path, ios::in);
     if (!infile.is_open())
     {
         std::cout << "KeyWord file load fail!" << "\n";
@@ -398,9 +406,17 @@ void TokenSequence::initKeyWord()
 void TokenSequence::initDelimiters()
 {
     ifstream infile;
+    std::string file_path;
+    #if defined(_WIN32) || defined(_WIN64)
+        file_path = "./Lexer/Delimiters.txt";
+    #elif defined(__linux__) 
+        file_path = "../Lexer/Delimiters.txt";
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
     std::string path_for_Linux = "../Lexer/Delimiters.txt";
     std::string path_for_Windows = "./Lexer/Delimiters.txt";
-    infile.open(path_for_Windows, ios::in);
+    infile.open(file_path, ios::in);
     if (!infile.is_open())
     {
         std::cout << "Delimiters file load fail!" << "\n";
