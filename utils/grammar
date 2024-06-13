@@ -36,11 +36,11 @@ StatementTail->IncrementOp ;
 AssignOrFuncTail->( Arguments ) ;
 AssignOrFuncTail->IDTail EqualOp Expression ;
 IncrementOp->++
-IfStatement->if ( Condition ) { CodeBody } ElsePart
-ElsePart->else { CodeBody } ElseifPartTail
+IfStatement->if ( Condition ) { CodeBody } ElseifPart ElsePart
+ElseifPart->else if ( Condition ) { CodeBody } ElseifPart
+ElseifPart->$
+ElsePart->else { CodeBody }
 ElsePart->$
-ElseifPartTail->else if ( Condition ) { CodeBody } ElseifPartTail
-ElseifPartTail->$
 WhileStatement->while ( Condition ) { CodeBody }
 ControlStatement->break ;
 ControlStatement->continue ;
@@ -59,6 +59,7 @@ JudgeOp->!=
 JudgeOp->>
 JudgeOp-><
 Expression->Term ExpressionTail
+Expression->$
 ExpressionTail->AddOp Term ExpressionTail
 ExpressionTail->$
 AddOp->+

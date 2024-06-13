@@ -1,6 +1,12 @@
-int main()
+void test()
 {
     int a = 0;
+    return 0;
+}
+
+int main()
+{
+    int A = 0;
     int b = 5;
     while (a > 0) 
     {
