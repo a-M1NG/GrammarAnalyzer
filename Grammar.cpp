@@ -290,11 +290,9 @@ bool LL1::parse()
 
             funcBlock.push_back(currentToken);
         }
-        else if (isupper(top[0]))
-        // else if (is_non_terminal(top))
-        { // 非终结符
-            std::cout << "fuck 114514 fuck: " << top[0] << std::endl;
-            // std::cout << "fuck 114514 fuck: " << top << std::endl;
+        else if (is_non_terminal(top) || top == "ID")
+        {   
+            // 非终结符与ID进入，上述提到的用户自定义标识符和常数与ID对应在这里处理
             if (!applyProduction(top, currentToken))
             {
                 std::cerr << "Error at line " << currentToken.line << ": ";
