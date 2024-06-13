@@ -207,7 +207,7 @@ void SymbolTable::calsymboltable()
 		token.re = (*iter).value;
 		token.type = (*iter).type;
 		token.colume = 1;
-		token.line = 1;
+		token.line = iter->line;
 		tokens.push_back(token);
 	}
 	/*while (!in.eof())
@@ -238,15 +238,15 @@ void SymbolTable::calsymboltable()
 				else     //不存在该函数名,写入该函数名 
 				{
 					cur = pushfunc(functable, funcnum, titer->re, (titer - 1)->re);
-					curnum = funcnum + 1;
+					curnum = funcnum - 1;
 				}
 			}
 			else if (flag1 > 0)   //说明是函数内部对函数的调用
 			{
 				if (num == -1)	//函数符号表中未出现 函数没有被定义就被调用 报错
 				{
-					cout << "Undefined Function [" << titer->re << "] at Line " << titer->line << " Colume " << titer->colume << endl;
-					exit(0);
+					cout << "Undefined Function [" << titer->re << "] at Line " << titer->line << endl;
+					//exit(0);
 				}
 				else//已存在该函数名，判断是否为首次调用 是则加入至当前函数的变量表中
 				{
@@ -263,14 +263,14 @@ void SymbolTable::calsymboltable()
 				if (flag1 == 0 || (flag1 > 0 && flag2 == 0)) 				//变量声明只能在函数获取形参中或不在其他位于函数内部的小括号内 
 				{
 					if (sym_exist(functable, cur, curnum, titer->re) == -1) 	//不存在该变量，则定义，入表 
-						if ((titer + 1)->re == "[") // 如果变量名后是左括号，则说明是数组定义
+						if (titer->type == "Arr") // 如果变量名后是左括号，则说明是数组定义
 							pushsym2(functable, cur, curnum, num, titer->re, "ARRAY", (titer - 1)->re);
 						else  // 变量定义
 							pushsym2(functable, cur, curnum, num, titer->re, "VARIABLE", (titer - 1)->re);
 					else														//存在该变量，不用入表 
 					{
 						cout << "Variable [" << titer->re << "] has been defined!" << endl;
-						exit(0);
+						//exit(0);
 					}
 				}
 				else
@@ -282,40 +282,42 @@ void SymbolTable::calsymboltable()
 			{
 				if (sym_exist(functable, cur, curnum, titer->re) == -1)			//符号表中不存在，说明未定义就使用
 				{
-					cout << "Undefined Variable [" << titer->re << "] at Line " << titer->line << " Colume " << titer->colume << endl;
-					exit(0);
+					cout << "Undefined Variable [" << titer->re << "] at Line " << titer->line << endl;
+					//exit(0);
 				}
 			}
 		}
 		else if (titer->type == "OOP") { // 若是运算符（OOP），判断前后操作数类型是否相同，是否是该运算符支持的类型
 			// 检查左操作数token类型
 			string pre_type;
-			if ((titer - 1)->re == "]") { // 若前一个token是右括号，则说明左操作数是数组中的元素
+			if ((titer - 1)->type == "Arr") { // 若前一个token是右括号，则说明左操作数是数组中的元素
 				vector<Token2>::iterator it;
 				// 向前遍历token，直到找到"[",其前一个就是目标token
-				for (it = titer - 2; it->re != "["; it--)
+				/*for (it = titer - 2; it->re != "["; it--)
 					continue;
 				it--;
 				// 查符号表得到其类型
-				pre_type = getType(it->re, curnum);
+				*/
+				//pre_type = getType(it->re, curnum);
+				pre_type=(titer-2)->re;
 			}
 			else
 				pre_type = ((titer - 1)->type == "Con" ? "int" : getType((titer - 1)->re, curnum));
-			if (pre_type == "void" || (pre_type == "char" && titer->re != "+")) {
+			if (pre_type == "char" && titer->re != "+") {
 				//cout << "Grammar Error at Line " << (titer-1)->line << " Colume " << (titer-1)->colume << endl;
-				cout << "Grammar Error at Line " << (titer - 1)->line << " Colume " << (titer - 1)->colume << endl;
-				exit(0);
+				cout << "Grammar Error at Line " << (titer - 1)->line <<  endl;
+				//exit(0);
 			}
 			// 检查右操作数token类型
 			string next_type = ((titer + 1)->type == "Con" ? "int" : getType((titer + 1)->re, curnum));
-			if (pre_type == "void" || (pre_type == "char" && titer->re != "+") || pre_type != next_type) {
+			if ((pre_type == "char" && titer->re != "+") || pre_type != next_type) {
 				//out << "Grammar Error at Line " << (titer+1)->line << " Colume " << (titer+1)->colume << endl;
-				cout << "Grammar Error at Line " << (titer + 1)->line << " Colume " << (titer + 1)->colume << endl;
-				exit(0);
+				cout << "Grammar Error at Line " << (titer + 1)->line <<  endl;
+				//exit(0);
 			}
 		}
 		// 出现左中括号，判断是否是数组类型
-		else if (titer->re == "[") {
+		/*else if (titer->re == "[") {
 			string pre_property = getProperty((titer - 1)->re, curnum);
 			if (pre_property != "ARRAY") { // 如果不是数组类型，报错
 				//out << "Grammar Error at Line " << titer->line << " Colume " << titer->colume << endl;
@@ -323,6 +325,7 @@ void SymbolTable::calsymboltable()
 				exit(0);
 			}
 		}
+		*/
 		else if (titer->re == "{")
 			flag1++;
 		else if (titer->re == "}")
