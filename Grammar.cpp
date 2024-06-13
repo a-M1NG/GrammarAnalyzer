@@ -80,7 +80,8 @@ public:
     //     }
     // }
 
-    LL1(const TokenList& tokens, const AnalysisTable& table, bool debug = false) : tokens(tokens), analysisTable(table), debug(debug) {
+    LL1(const TokenList &tokens, const AnalysisTable &table, bool debug = false) : tokens(tokens), analysisTable(table), debug(debug)
+    {
 
         JSONParser parser;
         std::string path_for_Linux = "../utils/AnalysisTable.json";
