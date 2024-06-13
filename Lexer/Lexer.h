@@ -388,8 +388,6 @@ void TokenSequence::initKeyWord()
     #else
         std::cout << "Unknown OS" << std::endl;
     #endif
-    // std::string path_for_Linux = "../Lexer/KeyWord.txt";
-    // std::string path_for_Windows = "./Lexer/KeyWord.txt";
     infile.open(file_path, ios::in);
     if (!infile.is_open())
     {
@@ -414,8 +412,6 @@ void TokenSequence::initDelimiters()
     #else
         std::cout << "Unknown OS" << std::endl;
     #endif
-    std::string path_for_Linux = "../Lexer/Delimiters.txt";
-    std::string path_for_Windows = "./Lexer/Delimiters.txt";
     infile.open(file_path, ios::in);
     if (!infile.is_open())
     {

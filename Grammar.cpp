@@ -4,6 +4,7 @@
 #include "Lexer/quater.h"
 #include "utils/GrammarParaser.cpp"
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <vector>
 class LL1
@@ -13,15 +14,13 @@ public:
     {
         decodeJson decoder;
         std::string file_path;
-#if defined(_WIN32) || defined(_WIN64)
-        file_path = "utils/AnalysisTable.json";
-#elif defined(__linux__)
-        file_path = "../utils/AnalysisTable.json";
-#else
-        std::cout << "Unknown OS" << std::endl;
-#endif
-        // std::string path_for_Linux = "../utils/AnalysisTable.json";
-        // std::string path_for_Windows = "utils/AnalysisTable.json";
+        #if defined(_WIN32) || defined(_WIN64)
+            file_path = "utils/AnalysisTable.json";
+        #elif defined(__linux__)
+            file_path = "../utils/AnalysisTable.json";
+        #else
+            std::cout << "Unknown OS" << std::endl;
+        #endif
         analysisTable = decoder.getAnal(file_path);
 
         for (const auto &item : analysisTable)
@@ -40,16 +39,13 @@ public:
 
         JSONParser parser;
         std::string file_path;
-#if defined(_WIN32) || defined(_WIN64)
-        file_path = "utils/AnalysisTable.json";
-#elif defined(__linux__)
-        file_path = "../utils/AnalysisTable.json";
-#else
-        std::cout << "Unknown OS" << std::endl;
-#endif
-        // std::string path_for_Linux = "../utils/AnalysisTable.json";
-        // std::string path_for_Windows = "utils/AnalysisTable.json";
-
+        #if defined(_WIN32) || defined(_WIN64)
+            file_path = "utils/AnalysisTable.json";
+        #elif defined(__linux__)
+            file_path = "../utils/AnalysisTable.json";
+        #else
+            std::cout << "Unknown OS" << std::endl;
+        #endif
         analysisTable = parser.parse(file_path);
 
         for (const auto &item : analysisTable)
@@ -294,8 +290,10 @@ bool LL1::parse()
             funcBlock.push_back(currentToken);
         }
         else if (isupper(top[0]))
+        // else if (is_non_terminal(top))
         { // 非终结符
             std::cout << "fuck 114514 fuck: " << top[0] << std::endl;
+            // std::cout << "fuck 114514 fuck: " << top << std::endl;
             if (!applyProduction(top, currentToken))
             {
                 std::cerr << "Error at line " << currentToken.line << ": ";
@@ -306,7 +304,7 @@ bool LL1::parse()
         else if (top == "#" && currentToken.value == "#")
         {
             funcBlocks.push_back(funcBlock);
-            std::cout << "Parsing successful!" << std::endl;
+            // std::cout << "Parsing successful!" << std::endl;
             return true; // 分析成功
         }
         else
@@ -320,16 +318,14 @@ bool LL1::parse()
 int main()
 {
     std::string file_path;
-#if defined(_WIN32) || defined(_WIN64)
-    file_path = "test.txt";
-#elif defined(__linux__)
-    file_path = "../test.txt";
-#else
-    std::cout << "Unknown OS" << std::endl;
-#endif
+    #if defined(_WIN32) || defined(_WIN64)
+        file_path = "test.txt";
+    #elif defined(__linux__)
+        file_path = "../test.txt";
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
     TokenSequence toseq;
-    // std::string path_for_Linux = "../test.txt";
-    // std::string path_for_Windows = "test.txt";
     auto tokens = toseq.getToken_list(file_path);
     toseq.printToken();
     LL1 ll1(tokens, AnalysisTable(), true);
@@ -353,12 +349,12 @@ int main()
         std::cout << "Quater list:" << std::endl;
         qt.printQuaters();
     }
-#if defined(_WIN32) || defined(_WIN64)
-    system("pause");
-#elif defined(__linux__)
-    std::cout << "Run on Linux" << std::endl;
-#else
-    std::cout << "Unknown OS" << std::endl;
-#endif
+    #if defined(_WIN32) || defined(_WIN64)
+        system("pause");
+    #elif defined(__linux__)
+        std::cout << "Run on Linux" << std::endl;
+    #else
+        std::cout << "Unknown OS" << std::endl;
+    #endif
     return 0;
 }
