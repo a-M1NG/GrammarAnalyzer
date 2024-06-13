@@ -2,6 +2,7 @@
 #include "Lexer/data_type.h"
 #include "Lexer/includes.h"
 #include "Lexer/quater.h"
+#include "Lexer/symbol.h"
 #include "utils/GrammarParaser.cpp"
 #include <iostream>
 #include <ostream>
@@ -328,7 +329,7 @@ int main()
     TokenSequence toseq;
     auto tokens = toseq.getToken_list(file_path);
     toseq.printToken();
-    LL1 ll1(tokens, AnalysisTable(), true);
+    LL1 ll1(tokens, AnalysisTable(), false);
     if (ll1.parse())
     {
         std::cout << "Parsing successful!" << std::endl;
@@ -349,6 +350,13 @@ int main()
         std::cout << "Quater list:" << std::endl;
         qt.printQuaters();
     }
+
+    cout << "-----------------------------------------------------" << endl;
+	cout << "SymbolTable:" << endl;
+	SymbolTable symboltable(tokens);
+	symboltable.init_symtable();
+	symboltable.calsymboltable();
+
 #if defined(_WIN32) || defined(_WIN64)
     system("pause");
 #elif defined(__linux__)
