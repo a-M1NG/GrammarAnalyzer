@@ -14,13 +14,13 @@ public:
     {
         decodeJson decoder;
         std::string file_path;
-        #if defined(_WIN32) || defined(_WIN64)
-            file_path = "utils/AnalysisTable.json";
-        #elif defined(__linux__)
-            file_path = "../utils/AnalysisTable.json";
-        #else
-            std::cout << "Unknown OS" << std::endl;
-        #endif
+#if defined(_WIN32) || defined(_WIN64)
+        file_path = "utils/AnalysisTable.json";
+#elif defined(__linux__)
+        file_path = "../utils/AnalysisTable.json";
+#else
+        std::cout << "Unknown OS" << std::endl;
+#endif
         analysisTable = decoder.getAnal(file_path);
 
         for (const auto &item : analysisTable)
@@ -39,13 +39,13 @@ public:
 
         JSONParser parser;
         std::string file_path;
-        #if defined(_WIN32) || defined(_WIN64)
-            file_path = "utils/AnalysisTable.json";
-        #elif defined(__linux__)
-            file_path = "../utils/AnalysisTable.json";
-        #else
-            std::cout << "Unknown OS" << std::endl;
-        #endif
+#if defined(_WIN32) || defined(_WIN64)
+        file_path = "utils/AnalysisTable.json";
+#elif defined(__linux__)
+        file_path = "../utils/AnalysisTable.json";
+#else
+        std::cout << "Unknown OS" << std::endl;
+#endif
         analysisTable = parser.parse(file_path);
 
         for (const auto &item : analysisTable)
@@ -273,7 +273,8 @@ bool LL1::parse()
         Token currentToken = input_stack_.top();
         if (top == "FuncDefs")
         {
-            funcBlocks.push_back(funcBlock);
+            if (funcBlock.size() != 0)
+                funcBlocks.push_back(funcBlock);
             funcBlock.clear();
         }
         if (debug)
@@ -303,7 +304,8 @@ bool LL1::parse()
         }
         else if (top == "#" && currentToken.value == "#")
         {
-            funcBlocks.push_back(funcBlock);
+            if (funcBlock.size() > 0)
+                funcBlocks.push_back(funcBlock);
             // std::cout << "Parsing successful!" << std::endl;
             return true; // 分析成功
         }
@@ -318,13 +320,13 @@ bool LL1::parse()
 int main()
 {
     std::string file_path;
-    #if defined(_WIN32) || defined(_WIN64)
-        file_path = "test.txt";
-    #elif defined(__linux__)
-        file_path = "../test.txt";
-    #else
-        std::cout << "Unknown OS" << std::endl;
-    #endif
+#if defined(_WIN32) || defined(_WIN64)
+    file_path = "test.txt";
+#elif defined(__linux__)
+    file_path = "../test.txt";
+#else
+    std::cout << "Unknown OS" << std::endl;
+#endif
     TokenSequence toseq;
     auto tokens = toseq.getToken_list(file_path);
     toseq.printToken();
@@ -349,12 +351,12 @@ int main()
         std::cout << "Quater list:" << std::endl;
         qt.printQuaters();
     }
-    #if defined(_WIN32) || defined(_WIN64)
-        system("pause");
-    #elif defined(__linux__)
-        std::cout << "Run on Linux" << std::endl;
-    #else
-        std::cout << "Unknown OS" << std::endl;
-    #endif
+#if defined(_WIN32) || defined(_WIN64)
+    system("pause");
+#elif defined(__linux__)
+    std::cout << "Run on Linux" << std::endl;
+#else
+    std::cout << "Unknown OS" << std::endl;
+#endif
     return 0;
 }
