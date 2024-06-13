@@ -329,7 +329,7 @@ int main()
     TokenSequence toseq;
     auto tokens = toseq.getToken_list(file_path);
     toseq.printToken();
-    LL1 ll1(tokens, AnalysisTable(), false);
+    LL1 ll1(tokens, AnalysisTable());
     if (ll1.parse())
     {
         std::cout << "Parsing successful!" << std::endl;
@@ -346,9 +346,18 @@ int main()
             continue;
         quaterGen qt(func);
         std::cout << "Quater generation:" << std::endl;
+        // 生成四元式
         qt.generate();
+        
+        // 划分基本块
+        qt.identifyBasicBlocks();
+        
+        // 执行优化
+        qt.performOptimizations();
+        
+        // 打印优化后的四元式
         std::cout << "Quater list:" << std::endl;
-        qt.printQuaters();
+        qt.printBasicBlocks();
     }
 
     cout << "-----------------------------------------------------" << endl;

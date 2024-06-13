@@ -1,16 +1,19 @@
-int test()
-{
-    int a = 0;
-    return 0;
-}
-
-int main()
-{
-    int a = 0;
-    int b = 5;
+int main() {
+    int a = 1;
     while (a > 0) 
     {
-        a = b + 2 * 3;
+        if (a < 10) 
+        {
+            a = b + 2 * 3;
+        } 
+        elseif (a < 10)
+        {
+            a = b + 2 * 3;
+            c = b + 2 * 3;
+        } 
+        else 
+        {
+            a = b * (2 + 3);
+        }
     }
-    return 0;
 }
