@@ -14,6 +14,7 @@ include_directories(CMAKE_<LANG>_COMPILER_EXTERNAL_TOOLCHAIN)
 # 列出所有需要包含的源文件
 set(SOURCES 
     Grammar.cpp
+    # LR1.cpp
     Lexer/Delimiters.txt
     Lexer/KeyWord.txt
 

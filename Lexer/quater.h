@@ -2,6 +2,7 @@
 #define QUATER_H
 
 #include "data_type.h"
+#include <unordered_set>    
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -60,6 +61,13 @@ public:
     /// @brief 
     /// @param inputTokens 输入的Token序列
     quaterGen(const std::vector <Token>& inputTokens) :tokens(inputTokens){}
+    public:
+    const std::vector<Quater>& getQuadruples() const {
+        return quater;
+    }
+    std::vector<BasicBlock> getBasicBlocks() {
+        return basicBlocks;
+    }
 
     Token getNextToken() {
         if (currentToken < tokens.size()) {
@@ -132,7 +140,6 @@ public:
         if (token.value.empty()|| precedence.find(token.value) == precedence.end()) {
             return;  // 如果token是空的，直接返回，避免无效操作
         }
-        ///调试代码
 
         while (!opStack.empty()&& precedence[opStack.top()] >= precedence[token.value]) 
         {
@@ -283,48 +290,41 @@ public:
     }
 
     void identifyBasicBlocks() {
-        BasicBlock currentBlock;
-        bool startNewBlock = true;
+    std::unordered_set<int> leaders; // 基本块的入口点
+    leaders.insert(0); // 第一个指令是入口点
 
-        for (auto& instr : quater) {
-            if (startNewBlock) {
-                if (!currentBlock.instructions.empty()) {
-                    basicBlocks.push_back(currentBlock);
-                    currentBlock = BasicBlock();
+    for (int i = 0; i < quater.size(); ++i) {
+        const auto& instr = quater[i];
+        if (instr.op == "ifFalse" || instr.op == "while" || instr.op == "elseif" || instr.op == "else") {
+            if (i + 1 < quater.size()) {
+                leaders.insert(i + 1); // 条件跳转指令的下一个指令是入口点
+            }
+            if (!instr.result.empty()) {
+                // 目标指令是入口点
+                for (int j = 0; j < quater.size(); ++j) {
+                    if (quater[j].result == instr.result) {
+                        leaders.insert(j);
+                        break;
+                    }
                 }
-                startNewBlock = false;
             }
-
-            currentBlock.addInstruction(instr);
-
-            // 检查是否需要在这个点开始一个新的基本块
-            if (instr.op == "ifFalse" || instr.op == "we"|| instr.op == "elseif"|| instr.op == "else") {
-                startNewBlock = true;
-            }
-        }
-
-        // 添加最后一个块，如果有的话
-        if (!currentBlock.instructions.empty()) {
-            basicBlocks.push_back(currentBlock);
         }
     }
 
-    void optimizeBasicBlock(BasicBlock& block) {
-    std::map<std::tuple<std::string, std::string, std::string>, std::string> expressionCache;
-
-    for (auto& instr : block.instructions) {
-        std::tuple<std::string, std::string, std::string> exprKey(instr.op, instr.arg1, instr.arg2);
-        if (expressionCache.find(exprKey) != expressionCache.end()) {
-            // 重用之前的计算结果
-            instr.result = expressionCache[exprKey];
-        } else {
-            // 将新的表达式和结果添加到缓存中
-            expressionCache[exprKey] = instr.result;
+    BasicBlock currentBlock;
+    for (int i = 0; i < quater.size(); ++i) {
+        if (leaders.find(i) != leaders.end()) {
+            if (!currentBlock.instructions.empty()) {
+                basicBlocks.push_back(currentBlock);
+                currentBlock = BasicBlock();
+            }
         }
+        currentBlock.addInstruction(quater[i]);
+    }
+    if (!currentBlock.instructions.empty()) {
+        basicBlocks.push_back(currentBlock);
     }
 }
-
-
 
     void printQuaters()
     {
@@ -339,17 +339,7 @@ public:
             block.print();
         }
     }
-
-    void performOptimizations() 
-    {
-        for (auto& block : basicBlocks) 
-        {
-            optimizeBasicBlock(block);
-        }
-    }
-
-
+    
 };
-
 
 #endif // QUATER_H
