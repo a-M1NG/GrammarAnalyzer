@@ -25,12 +25,14 @@ typedef struct Token2
 	string type;		//token类型
 	int line;			//token所在行
 	int colume;			//token所在列
+	//int level;
 }Token2;
 struct symbol
 {
 	string name;		//变量名
 	string type;		//变量类型
 	string property;	//变量属性
+	int level;
 	struct symbol* st;	//函数型成员地址
 };			//变量元素结构体
 
@@ -72,9 +74,9 @@ public:
 	void init_symtable(void);
 
 	//将当前变量加入到当前函数表中
-	void pushsym2(struct func functable[255], struct symbol* st, int curnum, int num, string name, string property, string type);
+	void pushsym2(struct func functable[255], struct symbol* st, int curnum, int num, string name, string property, string type, int level);
 
-
+	int ifvf(Token2 *st);
 private:
 
 	TokenSequence Cin;
@@ -133,11 +135,12 @@ void SymbolTable::pushsym(struct func functable[255], struct symbol* st, int cur
 }
 
 //将当前变量加入到当前函数表中
-void SymbolTable::pushsym2(struct func functable[255], struct symbol* st, int curnum, int num, string name, string property, string type)
+void SymbolTable::pushsym2(struct func functable[255], struct symbol* st, int curnum, int num, string name, string property, string type,int level)
 {
 	st[functable[curnum].num].name = name;
 	st[functable[curnum].num].property = property;
 	st[functable[curnum].num].type = type;
+	st[functable[curnum].num].level=level;
 	functable[curnum].num++;
 }
 
@@ -179,10 +182,34 @@ void SymbolTable::output()
 	}
 }
 
-
+int SymbolTable::ifvf(Token2 *st)
+{
+	int flag=0;
+	for(int i=0;(st+i)->type!="IDF";i--)
+	{
+		if((st+i)->re==",")
+		{
+			flag++;
+		}
+		else if((st+i)->type=="ID")
+		{
+			flag--;
+		}
+		if((st+i)->re=="("&&flag==0)
+		{
+			if((st+i-1)->type=="IDF")
+			{
+				return 1;
+			}
+				
+		}
+	}
+	return 0;
+}
 //生成符号表
 void SymbolTable::calsymboltable()
 {
+
 	vector<Token2> tokens;
 	Token2 token;
 	struct symbol* cur = NULL;
@@ -196,7 +223,7 @@ void SymbolTable::calsymboltable()
 		else if ((*iter).type == "I")
 		{
 			(*iter).type = "ID";
-			if ((*(iter + 1)).value == "(" && ((*(iter - 1)).value == "void" || (*(iter - 1)).value == "int" || (*(iter - 1)).value == "char"))
+			if ((*(iter + 1)).value == "(" && ((*(iter - 1)).value == "void" || (*(iter - 1)).value == "int" || (*(iter - 1)).value == "char"||(iter-1)->value=="long"||(iter-1)->value=="short"||(iter-1)->value=="string"))
 			{
 				(*iter).type = "IDF";
 			}
@@ -206,7 +233,7 @@ void SymbolTable::calsymboltable()
 	for (auto iter = tokens_.begin(); iter != tokens_.end(); iter++) {
 		token.re = (*iter).value;
 		token.type = (*iter).type;
-		token.colume = 1;
+		token.colume = 0;
 		token.line = iter->line;
 		tokens.push_back(token);
 	}
@@ -219,7 +246,7 @@ void SymbolTable::calsymboltable()
 	}*/
 	flag1 = 0; // 大括号标记
 	flag2 = 0; // 小括号标记
-	// init_symtable();
+	init_symtable();
 
 
 	//检测当前token的属性为函数名或者变量名，根据标记括号的flag1.flag2判断位置 
@@ -232,8 +259,7 @@ void SymbolTable::calsymboltable()
 			{
 				if (num != -1)//已存在该函数名
 				{
-					cur = functable[num].st;  //得到该函数名在符号表中的信息
-					curnum = num;
+					cout<<"Redefined Function ["<< titer->re<<"] at Line"<< titer->line<<endl;
 				}
 				else     //不存在该函数名,写入该函数名 
 				{
@@ -258,15 +284,15 @@ void SymbolTable::calsymboltable()
 
 		else if (titer->type == "ID")											//当前token为变量名，分为变量的声明和调用情况 
 		{
-			if ((titer - 1)->re == "void" || (titer - 1)->re == "int" || (titer - 1)->re == "char")		//前一个token为int或void，说明当前为变量的声明 
+			if ((titer - 1)->re == "void" || (titer - 1)->re == "int" || (titer - 1)->re == "char"||(titer-1)->re=="long"||(titer-1)->re=="short"||(titer-1)->re=="string")		//前一个token为int或void，说明当前为变量的声明 
 			{
 				if (flag1 == 0 || (flag1 > 0 && flag2 == 0)) 				//变量声明只能在函数获取形参中或不在其他位于函数内部的小括号内 
 				{
 					if (sym_exist(functable, cur, curnum, titer->re) == -1) 	//不存在该变量，则定义，入表 
 						if (titer->type == "Arr") // 如果变量名后是左括号，则说明是数组定义
-							pushsym2(functable, cur, curnum, num, titer->re, "ARRAY", (titer - 1)->re);
+							pushsym2(functable, cur, curnum, num, titer->re, "ARRAY", (titer - 1)->re,flag1);
 						else  // 变量定义
-							pushsym2(functable, cur, curnum, num, titer->re, "VARIABLE", (titer - 1)->re);
+							pushsym2(functable, cur, curnum, num, titer->re, "VARIABLE", (titer - 1)->re,flag1);
 					else														//存在该变量，不用入表 
 					{
 						cout << "Variable [" << titer->re << "] has been defined!" << endl;
@@ -280,7 +306,7 @@ void SymbolTable::calsymboltable()
 			}
 			else															//前一个token不是int或void，说明为变量的调用 
 			{
-				if (sym_exist(functable, cur, curnum, titer->re) == -1)			//符号表中不存在，说明未定义就使用
+				if (sym_exist(functable, cur, curnum, titer->re) == -1||(cur+sym_exist(functable, cur, curnum, titer->re))->level>flag1)			//符号表中不存在，说明未定义就使用
 				{
 					cout << "Undefined Variable [" << titer->re << "] at Line " << titer->line << endl;
 					//exit(0);

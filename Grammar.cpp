@@ -65,8 +65,8 @@ public:
             printVn();
             std::cout << "Vt: " << std::endl;
             printVt();
-            // std::cout << "Analysis Table: " << std::endl;
-            // parser.print(analysisTable);
+            std::cout << "Analysis Table: " << std::endl;
+            parser.print(analysisTable);
         }
 
         initializeStacks();
@@ -197,11 +197,6 @@ bool LL1::applyProduction(const std::string &nonTerminal, const Token &terminal)
     {
         production = analysisTable[nonTerminal]["ID"];
     }
-    else if (nonTerminal == "IDList" && terminal.type == "I")
-    {
-        analysis_stack_.pop();
-        production = analysisTable["IDList"]["ID"];
-    }
     else
         production = analysisTable[nonTerminal][terminal.value];
 
@@ -212,6 +207,7 @@ bool LL1::applyProduction(const std::string &nonTerminal, const Token &terminal)
         {
             std::cout << symbol << " ";
         }
+        std::cout << std::endl;
         std::cout << std::endl;
     }
 
@@ -279,7 +275,10 @@ bool LL1::parse()
             funcBlock.clear();
         }
         if (debug)
+        {
             printStacks();
+        }
+            
 
         // 前期在词法中做的处理，界符和关键字都是终结符且能直接匹配，用户自定义标识符和常数需要进一步处理
         if (top == currentToken.value && (currentToken.type == "K" || currentToken.type == "P"))

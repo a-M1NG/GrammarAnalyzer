@@ -153,6 +153,7 @@ public:
             throw runtime_error("Failed to open file: " + filename);
         }
         
+        // 从输入流中逐个字符读取，直到文件结束
         string json((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
         size_t pos = 0;
         return parseObject(json, pos);
@@ -175,58 +176,62 @@ private:
     string parseString(const string& json, size_t& pos) {
         string result;
         while (pos < json.size() && json[pos] != '\"') pos++;
-        pos++; // skip the opening quote
+        pos++; // 跳过左引号
         while (pos < json.size() && json[pos] != '\"') {
+            // 处理转义字符
             if (json[pos] == '\\') {
                 pos++;
                 if (pos < json.size() && json[pos] == '\"') {
                     result += '\"';
                 }
             } else {
+                // 延长字符串
                 result += json[pos];
             }
             pos++;
         }
-        pos++; // skip the closing quote
+        pos++; // 跳过右引号
         return result;
     }
 
     AnalysisTable parseObject(const string& json, size_t& pos) {
         AnalysisTable table;
         while (pos < json.size() && json[pos] != '{') pos++;
-        pos++; // skip the opening brace
+        pos++; // 跳过左花括号
 
         while (pos < json.size() && json[pos] != '}') {
             string key = parseString(json, pos);
             while (pos < json.size() && json[pos] != ':') pos++;
-            pos++; // skip the colon
+            pos++; // 跳过冒号
             table[key] = parseInnerObject(json, pos);
             while (pos < json.size() && json[pos] != ',' && json[pos] != '}') pos++;
-            if (json[pos] == ',') pos++; // skip the comma
+            if (json[pos] == ',') pos++; // 跳过逗号
         }
-        pos++; // skip the closing brace
+        pos++; // 跳过右花括号
         return table;
     }
-
+    
+    // 键值对，前者为终结符，后者为产生式
     unordered_map<string, vector<string>> parseInnerObject(const string& json, size_t& pos) {
         unordered_map<string, vector<string>> innerMap;
         while (pos < json.size() && json[pos] != '{') pos++;
-        pos++; // skip the opening brace
+        pos++; // 跳过左花括号
 
         while (pos < json.size() && json[pos] != '}') {
             string key = parseString(json, pos);
             while (pos < json.size() && json[pos] != ':') pos++;
-            pos++; // skip the colon
-            vector<string> production = parseArray(json, pos);
+            pos++; // 跳过冒号
+            vector<string> production = parseProductionList(json, pos);
             innerMap[key] = production;
             while (pos < json.size() && json[pos] != ',' && json[pos] != '}') pos++;
-            if (json[pos] == ',') pos++; // skip the comma
+            if (json[pos] == ',') pos++; // 跳过逗号
         }
-        pos++; // skip the closing brace
+        pos++; // 跳过右花括号
         return innerMap;
     }
-
-    vector<string> parseArray(const string& json, size_t& pos) {
+    
+    // 产生式序列
+    vector<string> parseProductionList(const string& json, size_t& pos) {
         vector<string> array;
         string value;
         while (pos < json.size() && json[pos] != '\"') pos++;
