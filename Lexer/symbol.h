@@ -219,7 +219,7 @@ void SymbolTable::calsymboltable()
 	}*/
 	flag1 = 0; // 大括号标记
 	flag2 = 0; // 小括号标记
-	init_symtable();
+	// init_symtable();
 
 
 	//检测当前token的属性为函数名或者变量名，根据标记括号的flag1.flag2判断位置 

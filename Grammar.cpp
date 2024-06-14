@@ -363,7 +363,7 @@ int main()
     cout << "-----------------------------------------------------" << endl;
 	cout << "SymbolTable:" << endl;
 	SymbolTable symboltable(tokens);
-	symboltable.init_symtable();
+	// symboltable.init_symtable();
 	symboltable.calsymboltable();
 
 #if defined(_WIN32) || defined(_WIN64)
