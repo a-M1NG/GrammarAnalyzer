@@ -347,38 +347,26 @@ int main()
     {
         if (func.size() == 0)
             continue;
-        // quaterGen qt(func);
-        // std::cout << "Quater generation:" << std::endl;
-        // // 生成四元式
-        // qt.generate();
+    }
+    
+    // 四元式生成
+    quaterGen qt(tokens);
+    qt.generate();
+    // std::cout << "划分基本块前，并且实现常数表达式的直接计算：" << std::endl;
+    qt.printQuaters();
+    // std::cout << "划分基本块后，并且实现公共子表达式消除" << std::endl;
+    qt.identifyBasicBlocks(); // 划分基本块
 
-        // // 划分基本块
-        // qt.identifyBasicBlocks();
+    std::vector<BasicBlock> basicBlocks = qt.getBasicBlocks();
+    optimizeBasicBlocks(basicBlocks);
 
-        // // 执行优化
-        // qt.performOptimizations();
-
-        // // 打印优化后的四元式
-        // std::cout << "Quater list:" << std::endl;
-        // qt.printBasicBlocks();
-
-        quaterGen qt(func);
-        qt.generate();
-        std::cout<<"划分基本块前，并且实现常数表达式的直接计算："<<std::endl;
-        qt.printQuaters();
-        std::cout<<"划分基本块后"<<std::endl;
-        qt.identifyBasicBlocks(); // 划分基本块
-        const std::vector<Quater>& quads = qt.getQuadruples();
-
-        std::vector<BasicBlock> basicBlocks = qt.getBasicBlocks();
-        // optimizeBasicBlocks(basicBlocks);
-
-        // 输出优化后的基本块
-        for (auto& block : basicBlocks) {
-            block.print();
-        }
+    // 输出优化后的基本块
+    for (auto& block : basicBlocks) {
+        block.print();
     }
 
+
+    // 符号表
     cout << "-----------------------------------------------------" << endl;
     cout << "SymbolTable:" << endl;
     SymbolTable symboltable(tokens);
