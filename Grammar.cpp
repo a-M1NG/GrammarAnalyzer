@@ -16,7 +16,7 @@ public:
         decodeJson decoder;
         std::string file_path;
 #if defined(_WIN32) || defined(_WIN64)
-        file_path = "utils/AnalysisTable.json";
+        file_path = "./utils/AnalysisTable.json";
 #elif defined(__linux__)
         file_path = "../utils/AnalysisTable.json";
 #else
@@ -41,7 +41,7 @@ public:
         JSONParser parser;
         std::string file_path;
 #if defined(_WIN32) || defined(_WIN64)
-        file_path = "utils/AnalysisTable.json";
+        file_path = "./utils/AnalysisTable.json";
 #elif defined(__linux__)
         file_path = "../utils/AnalysisTable.json";
 #else
@@ -292,7 +292,7 @@ bool LL1::parse()
             funcBlock.push_back(currentToken);
         }
         else if (is_non_terminal(top) || top == "ID")
-        {   
+        {
             // 非终结符与ID进入，上述提到的用户自定义标识符和常数与ID对应在这里处理
             if (!applyProduction(top, currentToken))
             {
@@ -348,23 +348,23 @@ int main()
         std::cout << "Quater generation:" << std::endl;
         // 生成四元式
         qt.generate();
-        
+
         // 划分基本块
         qt.identifyBasicBlocks();
-        
+
         // 执行优化
         qt.performOptimizations();
-        
+
         // 打印优化后的四元式
         std::cout << "Quater list:" << std::endl;
         qt.printBasicBlocks();
     }
 
     cout << "-----------------------------------------------------" << endl;
-	cout << "SymbolTable:" << endl;
-	SymbolTable symboltable(tokens);
-	symboltable.init_symtable();
-	symboltable.calsymboltable();
+    cout << "SymbolTable:" << endl;
+    SymbolTable symboltable(tokens);
+    symboltable.init_symtable();
+    symboltable.calsymboltable();
 
 #if defined(_WIN32) || defined(_WIN64)
     system("pause");
